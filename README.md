@@ -5,7 +5,7 @@ It was created using the lume-model-deployment-template using `copier`.
 
 ## To check deployment
 First set up kubectl by following the instructions in this [link](https://k8s.slac.stanford.edu/ad-accel-online-ml).
-To see the deployment logs of the container, you can use the following commands to get the name of the snd-model pod 
+To see the deployment logs of the container, you can use the following commands to get the name of the pod 
 that's running, and then view the logs:
 ```bash
 kubectl get pods
@@ -20,13 +20,13 @@ make sure to replace `<tag>` with the new tag in the commands below, **and in th
 2. Build the Docker image. The `platform` tag is necessary if you are developing on a machine with a different architecture. 
 If you are NOT building on a MacOS machine, you can skip the `--provenance` flag.
    ```bash
-   docker build -t snd-model:<tag> . --platform=linux/amd64 --provenance=false
+   docker build -t <image-name>:<tag> . --platform=linux/amd64 --provenance=false
    ```
 2. Push the Docker image to the Stanford Container Registry (replace `<your-username>` with your actual username):
     ```bash
     cat ~/.scr-token | docker login --username $USER --password-stdin http://scr.svc.stanford.edu
-    docker tag snd-model:<tag> scr.svc.stanford.edu/<your-username>/snd-model:<tag>
-    docker push scr.svc.stanford.edu/<your-username>/snd-model:<tag>
+    docker tag <image-name>:<tag> scr.svc.stanford.edu/<your-username>/<image-name>:<tag>
+    docker push scr.svc.stanford.edu/<your-username>/<image-name>:<tag>
     ```
    
 For more detailed instructions, refer to this [documentation](https://github.com/slaclab/lcls_cu_injector_ml_model?tab=readme-ov-file#containerization-steps).
