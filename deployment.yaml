@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lcls-cu-inj-model-deployment
+  namespace: lume-online-ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lcls-cu-inj-model
+  template:
+    metadata:
+      labels:
+        app: lcls-cu-inj-model
+    spec:
+      containers:
+      - name: lcls-cu-inj-model
+        image: ghcr.io/smiskov/lcls-cu-inj-model:1
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "500m"
+        env:
+          - name: EPICS_CA_ADDR_LIST
+            valueFrom:
+              secretKeyRef:
+                name: epics-secrets
+                key: ca_addr_list
