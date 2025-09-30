@@ -81,12 +81,12 @@ def run_iteration(model, interface, input_vars, interface_name):
     logger.debug("Input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model with the input
-    model.input_validation_config = {k: "warn" for k in model.input_names}
-    if interface_name == "epics":
-        # TODO: add transforms to base and remove this
-        # Transform input from PV units to simulation units
-        input_dict = model.input_transform(input_dict)
-        logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
+    # model.input_validation_config = {k: "warn" for k in model.input_names}
+    # if interface_name == "epics":
+    #     # TODO: add transforms to base and remove this
+    #     # Transform input from PV units to simulation units
+    #     input_dict = model.input_transform(input_dict)
+    #     logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model
     output = model.evaluate(input_dict)
