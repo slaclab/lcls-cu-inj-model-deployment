@@ -19,8 +19,8 @@ jobs:
     steps:
       - name: Set lower case repo owner and image name
         run: |
-          echo "REPO_LC=$(echo \"${REPO}\" | tr '[:upper:]' '[:lower:]')" >>${GITHUB_ENV}
-          echo "OWNER_LC=$(echo \"${{ github.repository_owner }}\" | tr '[:upper:]' '[:lower:]')" >>${GITHUB_ENV}
+          echo OWNER_LC=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]') >>${GITHUB_ENV}
+          echo REPO_LC=$(echo ${REPO} | tr '[:upper:]' '[:lower:]') >>${GITHUB_ENV}
       - name: Checkout code
         uses: actions/checkout@v3
 
