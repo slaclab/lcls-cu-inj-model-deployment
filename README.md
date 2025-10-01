@@ -46,7 +46,7 @@ Once the image is deployed, you can access following these steps:
 2. Use the following command to access the pod:
    ```bash
    kubectl exec -ti <pod-name> -- bash
-    ```
+   ```
 3. Once inside the pod, you can run the Python scripts or other commands as needed. To run the 
 tests, you can run for example (make sure you're in src/ directory):
    ```bash

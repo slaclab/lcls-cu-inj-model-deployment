@@ -2,7 +2,7 @@
 set -e
 
 CONFIG_DIR="/app/src/config"
-CONFIG_FILE="$CONFIG_DIR/lcls-cu-inj-model-deployment.ini"
+CONFIG_FILE="$CONFIG_DIR/lcls.ini"
 
 # Check for required environment variables
 if [ -z "$K2EG_IP" ]; then

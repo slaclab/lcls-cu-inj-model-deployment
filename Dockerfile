@@ -1,5 +1,5 @@
 ARG ENVIRONMENT="default"
-ARG INTERFACE="epics"
+ARG INTERFACE="k2eg"
 
 FROM ghcr.io/prefix-dev/pixi:noble AS build
 
@@ -12,7 +12,7 @@ COPY . .
 # Install system dependencies, then clean up
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install --no-install-recommends -qy ca-certificates git && \
+    apt-get install --no-install-recommends -qy ca-certificates git vim && \
     rm -rf /var/lib/apt/lists/*
 
 # Manually trigger an update of the certificate store
@@ -38,7 +38,7 @@ ARG ENVIRONMENT
 # Set env variables
 # TODO: set these dynamically based on interface choice
 ENV PYTHONUNBUFFERED=1
-ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/config
+ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/src/config
 ENV EPICS_CA_AUTO_ADDR_LIST=NO
 
 # only copy the production environment into prod container
@@ -62,4 +62,4 @@ WORKDIR /app/src/src
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # TODO: make this dynamic based on interface choice
-CMD ["python", "-m", "run", "--interface", "epics"]
+CMD ["python", "-m", "run", "--interface", "k2eg"]
