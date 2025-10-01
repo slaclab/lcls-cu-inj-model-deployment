@@ -71,7 +71,18 @@ def run_iteration(model, interface, input_vars, interface_name):
     None
     """
     # Get the input variable from the interface
+    input_vars = ["CAMR:IN20:186:XRMS", "CAMR:IN20:186:YRMS"] + input_vars[2:]
     input_dict = interface.get_input_variables(input_vars)
+
+
+    # TODO: adjust how this is done so it's standard for the models
+    rdist = np.sqrt(input_dict["CAMR:IN20:186:XRMS"]["value"] ** 2 + input_dict["CAMR:IN20:186:YRMS"]["value"] ** 2)
+    input_dict["CAMR:IN20:186:R_DIST"] = {"value": rdist, "posixseconds": input_dict["CAMR:IN20:186:XRMS"]["posixseconds"]}
+    # Remove XRMS and YRMS from input dict as they are not model inputs
+    del input_dict["CAMR:IN20:186:XRMS"]
+    del input_dict["CAMR:IN20:186:YRMS"]
+
+
     if interface_name == "epics" or interface_name == "k2eg":
         # TODO: adjust how this is done so it's standard for the models
         # TODO: validate that the model has PV names as the input names + any transforms
