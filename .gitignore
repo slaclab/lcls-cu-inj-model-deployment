@@ -136,6 +136,6 @@ dmypy.json
 .DS_Store
 
 # Infra stuff
-.ini
+*.ini
 mlartifacts/
 mlruns/
