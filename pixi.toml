@@ -1,5 +1,5 @@
 [project]
-name = {{deployment_name}}
+name = "lcls-cu-inj-model-deployment"
 channels = ["https://prefix.dev/conda-forge"] # TODO: can we change to not use conda-forge?
 platforms = ["linux-64"]
 
