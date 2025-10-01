@@ -32,6 +32,10 @@ def get_interface(interface_name, pvname_list=None):
         from interface.epics_interface import EPICSInterface
 
         return EPICSInterface(pvname_list)
+    elif interface_name == "k2eg":
+        from interface.k2eg_interface import K2EGInterface
+
+        return K2EGInterface()
     else:
         raise ValueError(f"Unknown interface: {interface_name}")
 
@@ -40,7 +44,7 @@ def get_input_vars(model, interface_name):
     if interface_name == "test":
         # Use model input variable objects
         return model.input_variables
-    elif interface_name == "epics":
+    elif interface_name == "epics" or interface_name == "k2eg":
         # Use PV names from the model's pv_map
         return model.input_names
     else:
@@ -68,7 +72,7 @@ def run_iteration(model, interface, input_vars, interface_name):
     """
     # Get the input variable from the interface
     input_dict = interface.get_input_variables(input_vars)
-    if interface_name == "epics":
+    if interface_name == "epics" or interface_name == "k2eg":
         # TODO: adjust how this is done so it's standard for the models
         # TODO: validate that the model has PV names as the input names + any transforms
         # Map PVs back to model input names
@@ -122,7 +126,7 @@ def main():
     parser.add_argument(
         "--interface",
         "-i",
-        choices=["test", "epics"],
+        choices=["test", "epics", "k2eg"],
         required=True,
         help="Interface to use",
     )

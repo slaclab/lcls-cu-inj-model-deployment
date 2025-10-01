@@ -12,7 +12,7 @@ class K2EGInterface:
         The K2EG client used to interact with the K2EG system.
     """
 
-    def __init__(self, environment_id: str, app_name: str):
+    def __init__(self, environment_id: str = "lcls", app_name: str = "app-three"):
         """
         Initializes the K2EGInterface with a K2EG client.
 
@@ -46,7 +46,7 @@ class K2EGInterface:
         Scalar
             The value of the process variable.
         """
-        return self.k2eg_client.get(proto + pv_name, timeout)["value"]
+        return self.k2eg_client.get(proto + pv_name, timeout)
 
     def put_pv(
         self,
@@ -100,7 +100,11 @@ class K2EGInterface:
         input_dict = {}
         for var in input_pvs:
             try:
-                input_dict[var] = self.get_pv(var)
+                k2eg_dict = self.get_pv(var)
+                input_dict[var] = {
+                    "value": k2eg_dict["value"],
+                    "posixseconds": k2eg_dict["posixseconds"]
+                }
             except Exception as e:
                 raise RuntimeError(f"Failed to get PV {var}: {e}")
         return input_dict
