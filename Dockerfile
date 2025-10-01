@@ -22,6 +22,7 @@ RUN update-ca-certificates
 RUN pixi install --environment $ENVIRONMENT
 # Create the shell-hook bash script to activate the environment
 RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
+    cat config/config_entrypoint.sh >> /app/entrypoint.sh && \
     pixi shell-hook --environment $ENVIRONMENT -s bash >> /app/entrypoint.sh && \
     echo '"$@"' >> /app/entrypoint.sh && \
     echo 'status=$?' >> /app/entrypoint.sh && \
@@ -37,9 +38,7 @@ ARG ENVIRONMENT
 # Set env variables
 # TODO: set these dynamically based on interface choice
 ENV PYTHONUNBUFFERED=1
-# Uncomment if you need to use k2eg to communicate with EPICS
-# ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/config
-# Set EPICS environment variables
+ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/config
 ENV EPICS_CA_AUTO_ADDR_LIST=NO
 
 # only copy the production environment into prod container
