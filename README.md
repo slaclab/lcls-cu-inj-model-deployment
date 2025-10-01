@@ -10,6 +10,8 @@ that's running, and then view the logs:
 ```bash
 kubectl get pods
 kubectl logs -f <pod-name>
+```
+
 ## Docker image deployment on Kubernetes (S3DF)
 To deploy the Docker image on Kubernetes, follow these steps. If you have updated the tag,
 make sure to replace `<tag>` with the new tag in the commands below, **and in the deployment YAML file**.
