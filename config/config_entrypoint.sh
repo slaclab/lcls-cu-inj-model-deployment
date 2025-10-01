@@ -26,5 +26,4 @@ kafka_broker_url=$K2EG_IP
 k2eg_cmd_topic=$K2EG_TOPIC
 EOF
 
-echo "Wrote config to $CONFIG_FILE:"
-cat "$CONFIG_FILE"
+echo "Wrote k2eg config to $CONFIG_FILE"
