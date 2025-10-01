@@ -17,6 +17,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+PIXI_LOCKFILE_PATH = "/app/pixi.lock"
+
 
 class MultiLineDict(collections.UserDict):
     def __str__(self):
@@ -154,6 +156,12 @@ def main():
     )
 
     with MLflowRun() as run:
+        # Log lockfile for complete reproducibility
+        try:
+            mlflow.log_artifact(PIXI_LOCKFILE_PATH, "pixi_lockfile")
+        except FileNotFoundError:
+            logger.error(f"Lockfile {PIXI_LOCKFILE_PATH} not found. Continuing without logging it.")
+        # Run the evaluation loop
         while True:
             try:
                 run_iteration(model, interface, input_vars, args.interface)
