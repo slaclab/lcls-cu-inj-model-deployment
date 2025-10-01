@@ -103,7 +103,7 @@ class K2EGInterface:
                 k2eg_dict = self.get_pv(var)
                 input_dict[var] = {
                     "value": k2eg_dict["value"],
-                    "posixseconds": k2eg_dict["posixseconds"]
+                    "posixseconds": k2eg_dict["timeStamp"]["secondsPastEpoch"],
                 }
             except Exception as e:
                 raise RuntimeError(f"Failed to get PV {var}: {e}")

@@ -12,7 +12,7 @@ COPY . .
 # Install system dependencies, then clean up
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install --no-install-recommends -qy ca-certificates git vim && \
+    apt-get install --no-install-recommends -qy ca-certificates git && \
     rm -rf /var/lib/apt/lists/*
 
 # Manually trigger an update of the certificate store

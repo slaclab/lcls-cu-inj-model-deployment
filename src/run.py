@@ -71,8 +71,8 @@ def run_iteration(model, interface, input_vars, interface_name):
     None
     """
     # Get the input variable from the interface
-    input_vars = ["CAMR:IN20:186:XRMS", "CAMR:IN20:186:YRMS"] + input_vars[2:]
-    input_dict = interface.get_input_variables(input_vars)
+    input_vars_pv = ["CAMR:IN20:186:XRMS", "CAMR:IN20:186:YRMS"] + input_vars[2:]
+    input_dict = interface.get_input_variables(input_vars_pv)
 
 
     # TODO: adjust how this is done so it's standard for the models
@@ -89,6 +89,9 @@ def run_iteration(model, interface, input_vars, interface_name):
         # Map PVs back to model input names
         logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict)}")
         posixseconds = int(max(d["posixseconds"] for d in input_dict.values()))
+
+        # Add constant Pulse_length, TODO: make this standard
+        input_dict["Pulse_length"] = {"value": model.input_variables[1].default_value, "posixseconds": posixseconds}
         input_dict = {
             model.input_names[i]: input_dict[pv]["value"]
             for i, pv in enumerate(input_vars)
