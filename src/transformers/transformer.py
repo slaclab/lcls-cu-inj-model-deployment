@@ -52,13 +52,13 @@ class InputPVTransformer():
         for pv, value in input_dict.items():
             # assert value is float
             try:
-                if isinstance(value, (float, int, np.float32)):
-                    value = float(value)
-                elif isinstance(value, (np.ndarray, list)):
-                    value = np.array(value).astype(float)
+                if isinstance(value["value"], (float, int, np.float32)):
+                    value["value"] = float(value["value"])
+                elif isinstance(value["value"], (np.ndarray, list)):
+                    value["value"] = np.array(value["value"]).astype(float)
                 else:
                     raise Exception(
-                        f'Invalid type for value: {value}, type: {type(value)}'
+                        f'Invalid type for value: {value["value"]}, type: {type(value["value"])}'
                     )
             except Exception as e:
                 logger.error(f'Error converting value to float: {e}')
@@ -71,23 +71,32 @@ class InputPVTransformer():
             raise e
 
     def _transform(self, input_dict):
-        transformed = {}
+        transformed = {key: {"value": None, "posixseconds": None} for key in self.pv_mapping.keys()}
+        timestamps = [input_dict[key]["posixseconds"] for key in input_dict.keys()]
+        max_timestamp = max(timestamps)
         pvs_renamed = {
-            key.replace(':', '_'): value for key, value in input_dict.items()
+            key.replace(':', '_'): value["value"] for key, value in input_dict.items()
         }
 
         for key in self.pv_mapping.keys():
             try:
                 lambdified_formula = self.lambdified_formulas[key]
-                transformed[key] = lambdified_formula(*[
+                transformed[key]["value"] = lambdified_formula(*[
                     pvs_renamed[symbol.replace(':', '_')] for symbol in self.input_list
                 ])
 
-                if isinstance(transformed[key], np.ndarray):
-                    if transformed[key].shape[-1] == 1:
-                        transformed[key] = transformed[key].squeeze()
+                if isinstance(transformed[key]["value"], np.ndarray):
+                    if transformed[key]["value"].shape[-1] == 1:
+                        transformed[key]["value"] = transformed[key]["value"].squeeze()
                 else:
-                    transformed[key] = float(transformed[key])
+                    transformed[key]["value"] = float(transformed[key]["value"])
+
+                # Preserve timestamp from input
+                try:
+                    transformed[key]["posixseconds"] = input_dict[key]["posixseconds"]
+                except KeyError:
+                    # TODO: actually set it to the max of the input PVs used in the formula
+                    transformed[key]["posixseconds"] = max_timestamp
 
             except Exception as e:
                 logger.error(f'Error transforming: {e}')
