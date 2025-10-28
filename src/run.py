@@ -83,13 +83,14 @@ def run_iteration(model, interface, input_vars, interface_name, input_pv_transfo
     elif interface_name == "epics" or interface_name == "k2eg":
         # Get the input variables from the interface
         input_dict_raw = interface.get_input_variables(input_pv_transformer.input_list)
+        logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict_raw)}")
         # Get model inputs from PV inputs based on formulas defined in config.yaml
         input_dict = input_pv_transformer.transform(input_dict_raw)
 
         # TODO: adjust how this is done so it's standard for the models
         # TODO: validate that the model has PV names as the input names + any transforms
         # Map PVs back to model input names
-        logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict)}")
+        logger.debug(f"Transformed input values from EPICS: {MultiLineDict(input_dict)}")
         posixseconds = int(max(d["posixseconds"] for d in input_dict.values()))
 
         # Add constant Pulse_length, TODO: make this standard
