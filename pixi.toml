@@ -11,12 +11,10 @@ python = ">=3.12,<3.13"
 pyepics = "*"
 k2eg = "*"
 # mlflow on conda is at 3.2.0 but we probably need 3.3.x so can't install lume and mlflow from conda
-#lume-model = ">=2.0.0"
+lume-model = ">=2.0.0"
 mlflow = "==3.3.2.*"
 pyyaml = "*"
 sympy = "*"
-#lcls_beamline_toolbox = { git = "https://github.com/mseaberg/lcls_beamline_toolbox.git", branch = "master"}
-"lume-model" = { path = "../lume-model/", editable = true }
 
 #[feature.gpu]
 #system-requirements = { cuda = "12.0" }
