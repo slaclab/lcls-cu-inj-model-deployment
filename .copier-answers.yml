@@ -2,7 +2,7 @@ _src_path: /Users/smiskov/SLAC/lume-model-deployment-template
 command: python -m run.py --interface test
 deployment_name: lcls-cu-inj-model-deployment
 interface: test
-mlflow_tracking_uri: http://127.0.0.1:8082
+mlflow_tracking_uri: https://ard-mlflow.slac.stanford.edu/
 model_version: 1
 rate: 1.0
 registered_model_name: lcls-cu-inj-model
