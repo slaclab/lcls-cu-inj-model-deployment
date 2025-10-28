@@ -3,10 +3,12 @@ import sys
 import logging
 import time
 import collections
+import yaml
 import numpy as np
 import mlflow
 from mlflow_utils import MLflowRun, MLflowModelGetter
 from config import registered_model_name, model_version
+from transformers.transformer import InputPVTransformer
 
 
 logging.basicConfig(
@@ -53,7 +55,7 @@ def get_input_vars(model, interface_name):
         raise ValueError(f"Unknown interface: {interface_name}")
 
 
-def run_iteration(model, interface, input_vars, interface_name):
+def run_iteration(model, interface, input_vars, interface_name, input_pv_transformer):
     """
     Run a single iteration of the SNDModel evaluation using the specified interface.
 
@@ -67,25 +69,23 @@ def run_iteration(model, interface, input_vars, interface_name):
         List of input variable names or PVs, depending on the interface.
     interface_name : str
         The name of the interface to use ('test' or 'epics').
+    input_pv_transformer : InputPVTransformer
+        The transformer to convert PV inputs to model inputs.
 
     Returns
     -------
     None
     """
-    # Get the input variable from the interface
-    input_vars_pv = ["CAMR:IN20:186:XRMS", "CAMR:IN20:186:YRMS"] + input_vars[2:]
-    input_dict = interface.get_input_variables(input_vars_pv)
+    if interface_name == "test":
+        # Get the input variable from the interface
+        input_dict = interface.get_input_variables(input_vars)
 
+    elif interface_name == "epics" or interface_name == "k2eg":
+        # Get the input variables from the interface
+        input_dict_raw = interface.get_input_variables(input_pv_transformer.input_list)
+        # Get model inputs from PV inputs based on formulas defined in config.yaml
+        input_dict = input_pv_transformer.transform(input_dict_raw)
 
-    # TODO: adjust how this is done so it's standard for the models
-    rdist = np.sqrt(input_dict["CAMR:IN20:186:XRMS"]["value"] ** 2 + input_dict["CAMR:IN20:186:YRMS"]["value"] ** 2)
-    input_dict["CAMR:IN20:186:R_DIST"] = {"value": rdist, "posixseconds": input_dict["CAMR:IN20:186:XRMS"]["posixseconds"]}
-    # Remove XRMS and YRMS from input dict as they are not model inputs
-    del input_dict["CAMR:IN20:186:XRMS"]
-    del input_dict["CAMR:IN20:186:YRMS"]
-
-
-    if interface_name == "epics" or interface_name == "k2eg":
         # TODO: adjust how this is done so it's standard for the models
         # TODO: validate that the model has PV names as the input names + any transforms
         # Map PVs back to model input names
@@ -98,15 +98,19 @@ def run_iteration(model, interface, input_vars, interface_name):
             model.input_names[i]: input_dict[pv]["value"]
             for i, pv in enumerate(input_vars)
         }
+
+    else:
+        raise ValueError(f"Unknown interface: {interface_name}")
+
     logger.debug("Input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model with the input
-    # model.input_validation_config = {k: "warn" for k in model.input_names}
-    # if interface_name == "epics":
-    #     # TODO: add transforms to base and remove this
-    #     # Transform input from PV units to simulation units
-    #     input_dict = model.input_transform(input_dict)
-    #     logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
+    model.input_validation_config = {k: "warn" for k in model.input_names}
+    if interface_name == "epics":
+        # TODO: add transforms to base and remove this
+        # Transform input from PV units to simulation units
+        input_dict = model.input_transform(input_dict)
+        logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model
     output = model.evaluate(input_dict)
@@ -155,6 +159,11 @@ def main():
         args.interface, input_vars if args.interface == "epics" else None
     )
 
+    # Set up PV transformer
+    with open("model/config.yml", 'r') as f:
+        config_yaml = yaml.safe_load(f)
+    input_pv_transformer = InputPVTransformer(config_yaml)
+
     with MLflowRun() as run:
         # Log lockfile for complete reproducibility
         try:
@@ -164,15 +173,13 @@ def main():
         # Run the evaluation loop
         while True:
             try:
-                run_iteration(model, interface, input_vars, args.interface)
+                run_iteration(model, interface, input_vars, args.interface, input_pv_transformer)
                 time.sleep(1)
             except KeyboardInterrupt:
                 logger.info("Keyboard interrupt received. Exiting.")
                 exit(0)
             except Exception as e:
-                logger.error(f"An error occurred: {e}")
-                logger.info("Retrying in 5 seconds...")
-                time.sleep(5)
+                raise e
 
 
 if __name__ == "__main__":

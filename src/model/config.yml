@@ -1,0 +1,95 @@
+input_variables:
+  CAMR:IN20:186:R_DIST:
+    symbols:
+      - CAMR:IN20:186:XRMS
+      - CAMR:IN20:186:YRMS
+    formula: "(CAMR:IN20:186:XRMS**2 + CAMR:IN20:186:YRMS**2)**(1/2)"
+    proto: pva
+  Pulse_length:
+    formula: "1.8550514181818183"
+    proto: pva
+  FBCK:BCI0:1:CHRG_S:
+    symbols:
+      - FBCK:BCI0:1:CHRG_S
+    formula: FBCK:BCI0:1:CHRG_S
+  SOLN:IN20:121:BACT:
+    symbols:
+      - SOLN:IN20:121:BACT
+    formula: SOLN:IN20:121:BACT
+    proto: pva
+  QUAD:IN20:121:BACT:
+    symbols:
+      - QUAD:IN20:121:BACT
+    formula:  QUAD:IN20:121:BACT
+    proto: pva
+  QUAD:IN20:122:BACT:
+    symbols:
+      - QUAD:IN20:122:BACT
+    formula: QUAD:IN20:122:BACT
+    proto: pva
+  ACCL:IN20:300:L0A_ADES:
+    symbols:
+      - ACCL:IN20:300:L0A_ADES
+    formula: ACCL:IN20:300:L0A_ADES
+    proto: pva
+  ACCL:IN20:300:L0A_PDES:
+    symbols:
+      - ACCL:IN20:300:L0A_PDES
+    formula: ACCL:IN20:300:L0A_PDES
+    proto: pva
+  ACCL:IN20:400:L0B_ADES:
+    symbols:
+      - ACCL:IN20:400:L0B_ADES
+    formula: ACCL:IN20:400:L0B_ADES
+    proto: pva
+  ACCL:IN20:400:L0B_PDES:
+    symbols:
+      - ACCL:IN20:400:L0B_PDES
+    formula: ACCL:IN20:400:L0B_PDES
+    proto: pva
+  QUAD:IN20:361:BACT:
+    symbols:
+      - QUAD:IN20:361:BACT
+    formula: QUAD:IN20:361:BACT
+    proto: pva
+  QUAD:IN20:371:BACT:
+    symbols:
+      - QUAD:IN20:371:BACT
+    formula: QUAD:IN20:371:BACT
+    proto: pva
+  QUAD:IN20:425:BACT:
+    symbols:
+      - QUAD:IN20:425:BACT
+    formula: QUAD:IN20:425:BACT
+    proto: pva
+  QUAD:IN20:441:BACT:
+    symbols:
+      - QUAD:IN20:441:BACT
+    formula: QUAD:IN20:441:BACT
+    proto: pva
+  QUAD:IN20:511:BACT:
+    symbols:
+      - QUAD:IN20:511:BACT
+    formula: QUAD:IN20:511:BACT
+    proto: pva
+  QUAD:IN20:525:BACT:
+    symbols:
+      - QUAD:IN20:525:BACT
+    formula: QUAD:IN20:525:BACT
+    proto: pva
+output_variables:
+  OTRS:IN20:571:XRMS:
+    proto: pva
+    name: OTRS:IN20:571:XRMS_CU_HXR_LUME
+  OTRS:IN20:571:YRMS:
+    proto: pva
+    name: OTRS:IN20:571:YRMS_CU_HXR_LUME
+  sigma_z:
+    proto: pva
+    name: ZRMS_CU_HXR_LUME
+  norm_emit_x:
+    proto: pva
+    name: EMITN_X_CU_HXR_LUME
+  norm_emit_y:
+    proto: pva
+    name: EMITN_Y_CU_HXR_LUME
