@@ -86,15 +86,9 @@ def run_iteration(model, interface, input_pv_transformer):
 
     logger.debug("Input values: %s", MultiLineDict(input_dict))
 
-    # Evaluate the model with the input
+    # Set custom input validation to warn on all inputs
     # TODO: make this optional? or a config? for now, just warn on all inputs
     model.input_validation_config = {k: "warn" for k in model.input_names}
-    # if interface.name == "epics":
-    #     # TODO: this was just for snd testing!!!
-    #     # TODO: add transforms to base and remove this
-    #     # Transform input from PV units to simulation units
-    #     input_dict = model.input_transform(input_dict)
-    #     logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model
     output = model.evaluate(input_dict)
