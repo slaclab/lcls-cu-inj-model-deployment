@@ -1,5 +1,15 @@
 import os
+import logging
+import sys
 import epics
+
+logging.basicConfig(
+    stream=sys.stdout,
+    format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG,
+)
+logger = logging.getLogger(__name__)
 
 
 class EPICSInterface:
@@ -69,4 +79,5 @@ class EPICSInterface:
                     results[pv.pvname] = {"error": "Connection failed"}
             except Exception as e:
                 results[pv.pvname] = {"error": str(e)}
+                logger.error(f"Error retrieving PV {pv.pvname}: {e}")
         return results

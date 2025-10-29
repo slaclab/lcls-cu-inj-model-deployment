@@ -4,7 +4,6 @@ import logging
 import time
 import collections
 import yaml
-import numpy as np
 import mlflow
 from mlflow_utils import MLflowRun, MLflowModelGetter
 from configs.template_config import registered_model_name, model_version
@@ -74,7 +73,9 @@ def run_iteration(model, interface, input_pv_transformer):
 
         # Get model inputs from PV inputs based on formulas defined in config.yaml
         input_dict = input_pv_transformer.transform(input_dict_raw)
-        logger.debug(f"Transformed input values from EPICS: {MultiLineDict(input_dict)}")
+        logger.debug(
+            f"Transformed input values from EPICS: {MultiLineDict(input_dict)}"
+        )
 
     else:
         raise ValueError(f"Unknown interface: {interface.name}")
@@ -99,7 +100,9 @@ def run_iteration(model, interface, input_pv_transformer):
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
     mlflow.log_metrics(
         input_dict | output,
-        timestamp=(max_posixseconds * 1000 if interface.name in ("epics", "k2eg") else None),
+        timestamp=(
+            max_posixseconds * 1000 if interface.name in ("epics", "k2eg") else None
+        ),
     )
     logger.debug("Output values: %s", MultiLineDict(output))
 
@@ -138,20 +141,23 @@ def main():
     # This is required to map from EPICS PV names to model input names, and apply any formulas
     # defined in configs/pv_config.yaml. This is applicable only for EPICS/k2eg interfaces, and is in addition
     # to the lume-model's own internal input_transform method, if any are defined.
-    with open("configs/pv_config.yaml", 'r') as f:
+    with open("configs/pv_config.yaml", "r") as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
 
     interface = get_interface(
-        args.interface, input_pv_transformer.input_list if args.interface == "epics" else None
+        args.interface,
+        input_pv_transformer.input_list if args.interface == "epics" else None,
     )
 
-    with MLflowRun() as run:
+    with MLflowRun() as _:
         # Log lockfile for complete reproducibility
         try:
             mlflow.log_artifact(PIXI_LOCKFILE_PATH, "pixi_lockfile")
         except FileNotFoundError:
-            logger.error(f"Lockfile {PIXI_LOCKFILE_PATH} not found. Continuing without logging it.")
+            logger.error(
+                f"Lockfile {PIXI_LOCKFILE_PATH} not found. Continuing without logging it."
+            )
         # Run the evaluation loop
         while True:
             try:

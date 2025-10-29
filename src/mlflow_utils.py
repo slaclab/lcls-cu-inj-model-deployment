@@ -1,5 +1,4 @@
 import logging
-import os
 import mlflow
 from mlflow import MlflowClient
 from mlflow.models.model import get_model_info
@@ -85,14 +84,14 @@ class MLflowRun:
         return self.run_prefix + str(next_run_number)
 
 
-class MLflowModelGetter():
+class MLflowModelGetter:
     # Adapted from Mat Leputa's poly-lithic implementation
     # https://github.com/ISISNeutronMuon/poly-lithic/blob/main/poly_lithic/src/model_utils/MlflowModelGetter.py
     def __init__(self, model_name, model_version=None, model_uri=None):
         # either supply version or URI
-        if "model_version" is not None:
+        if "model_version" != None:
             model_uri = None
-        elif "model_uri" is not None:
+        elif "model_uri" != None:
             model_version = None
         else:
             raise ValueError("Either model_version or model_uri must be supplied")
@@ -134,7 +133,7 @@ class MLflowModelGetter():
     def get_model(self):
         if self.model_uri is not None:
             model_uri = self.model_uri
-        elif self.model_version is not None: # TODO: why is this different from above?
+        elif self.model_version is not None:  # TODO: why is this different from above?
             version = self.client.get_model_version(self.model_name, self.model_version)
             model_uri = version.source
         else:
@@ -144,42 +143,42 @@ class MLflowModelGetter():
 
         # flavor
         flavor = get_model_info(model_uri=model_uri).flavors
-        loader_module = flavor['python_function']['loader_module']
-        logger.debug(f'Loader module: {loader_module}')
+        loader_module = flavor["python_function"]["loader_module"]
+        logger.debug(f"Loader module: {loader_module}")
 
-        if loader_module == 'mlflow.pyfunc.model':
-            logger.debug('Loading pyfunc model')
+        if loader_module == "mlflow.pyfunc.model":
+            logger.debug("Loading pyfunc model")
             model_pyfunc = mlflow.pyfunc.load_model(model_uri=model_uri)
 
             # check if model has.get_lume_model() method
-            if not hasattr(model_pyfunc.unwrap_python_model(), 'get_lume_model'):
+            if not hasattr(model_pyfunc.unwrap_python_model(), "get_lume_model"):
                 # check if it has get__model() method
-                if not hasattr(model_pyfunc.unwrap_python_model(), 'get_model'):
+                if not hasattr(model_pyfunc.unwrap_python_model(), "get_model"):
                     raise Exception(
-                        'Model does not have get_lume_model() or get_model() method'
+                        "Model does not have get_lume_model() or get_model() method"
                     )
                 else:
-                    logger.debug('Model has get_model() method')
+                    logger.debug("Model has get_model() method")
                     logger.warning(
-                        'get_model() suggests a non-LUME model, please check if model has an evaluate method'
+                        "get_model() suggests a non-LUME model, please check if model has an evaluate method"
                     )
                     model = model_pyfunc.unwrap_python_model().get_model()
             else:
-                logger.debug('Model has get_lume_model() method')
+                logger.debug("Model has get_lume_model() method")
                 model = model_pyfunc.unwrap_python_model().get_lume_model()
 
-            logger.debug(f'Model: {model}, Model type: {type(model)}')
-            self.model_type = 'pyfunc'
+            logger.debug(f"Model: {model}, Model type: {type(model)}")
+            self.model_type = "pyfunc"
             return model
 
-        elif loader_module == 'mlflow.pytorch':
-            print('Loading torch model')
+        elif loader_module == "mlflow.pytorch":
+            print("Loading torch model")
             model_torch_module = mlflow.pytorch.load_model(model_uri=model_uri)
             assert isinstance(model_torch_module, TorchModule)
             model = model_torch_module.model
             assert isinstance(model, TorchModel)
-            logger.debug(f'Model: {model}, Model type: {type(model)}')
-            self.model_type = 'torch'
+            logger.debug(f"Model: {model}, Model type: {type(model)}")
+            self.model_type = "torch"
             return model
         else:
-            raise Exception(f'Flavor {flavor} not supported')
+            raise Exception(f"Flavor {flavor} not supported")
