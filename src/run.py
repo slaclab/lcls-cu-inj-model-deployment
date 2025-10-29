@@ -6,7 +6,7 @@ import collections
 import yaml
 import mlflow
 from mlflow_utils import MLflowRun, MLflowModelGetter
-from configs.template_config import registered_model_name, model_version
+from configs.template_config import registered_model_name, model_version, rate
 from transformers.transformer import InputPVTransformer
 
 
@@ -64,9 +64,13 @@ def run_iteration(model, interface, input_pv_transformer):
         # Get the input variable from the interface
         input_dict = interface.get_input_variables(model.input_variables)
 
-    elif interface.name == "epics" or interface.name == "k2eg":
+    elif interface.name in ("epics", "k2eg"):
         # Get the values of input variables PVs from the interface
-        input_dict_raw = interface.get_input_variables(input_pv_transformer.input_list)
+        args = {"input_pvs": input_pv_transformer.input_list}
+        if interface.name == "k2eg":
+            args["protos"] = input_pv_transformer.get_proto_list()
+        input_dict_raw = interface.get_input_variables(**args)
+
         # Save the latest timestamp from EPICS PVs for logging
         max_posixseconds = int(max(d["posixseconds"] for d in input_dict_raw.values()))
         logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict_raw)}")
@@ -162,7 +166,7 @@ def main():
         while True:
             try:
                 run_iteration(model, interface, input_pv_transformer)
-                time.sleep(1)
+                time.sleep(rate)
             except KeyboardInterrupt:
                 logger.info("Keyboard interrupt received. Exiting.")
                 exit(0)

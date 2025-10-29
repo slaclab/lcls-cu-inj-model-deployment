@@ -70,7 +70,11 @@ class InputPVTransformer:
         self.pv_mapping = pv_mapping
 
         for key, value in self.pv_mapping.items():
-            self._validate_formulas(str(value["formula"]))
+            try:
+                self._validate_formulas(str(value["formula"]))
+            except KeyError as e:
+                logger.error(f"No formula defined for {key}. A formula is required in the config.")
+                raise e
         self.formulas = {}
         self.lambdified_formulas = {}
         for key, value in self.pv_mapping.items():
@@ -87,6 +91,27 @@ class InputPVTransformer:
             sp.sympify(formula.replace(":", "_"))
         except Exception as e:
             raise Exception(f"Invalid formula: {formula}: {e}")
+
+    def get_proto_list(self):
+        """
+        Retrieves the protocol list for the output PVs based on the configuration.
+
+        Returns
+        -------
+        list
+            List of protocols corresponding to each input variable that has one or more specified symbols.
+        """
+        proto_list = []
+        for key in self.pv_mapping.keys():
+            if "symbols" in self.pv_mapping[key] and self.pv_mapping[key]["symbols"] is not None:
+                try:
+                    proto_list.append(self.pv_mapping[key]["proto"])
+                except KeyError:
+                    logger.error(f"No proto defined for PV {key}, defaulting to 'ca'.")
+                    proto_list.append("ca")
+            else:
+                logger.debug(f"No proto defined for constant PV {key}.")
+        return proto_list
 
     def transform(self, input_dict):
         """
