@@ -7,11 +7,8 @@ input_variables:
     proto: pva
   Pulse_length:
     formula: "1.8550514181818183"
-    proto: pva
   FBCK:BCI0:1:CHRG_S:
-    symbols:
-      - FBCK:BCI0:1:CHRG_S
-    formula: FBCK:BCI0:1:CHRG_S
+    formula: "0.25"
   SOLN:IN20:121:BACT:
     symbols:
       - SOLN:IN20:121:BACT
@@ -28,20 +25,14 @@ input_variables:
     formula: QUAD:IN20:122:BACT
     proto: pva
   ACCL:IN20:300:L0A_ADES:
-    symbols:
-      - ACCL:IN20:300:L0A_ADES
-    formula: ACCL:IN20:300:L0A_ADES
-    proto: pva
+    formula: "58.0"
   ACCL:IN20:300:L0A_PDES:
     symbols:
       - ACCL:IN20:300:L0A_PDES
     formula: ACCL:IN20:300:L0A_PDES
     proto: pva
   ACCL:IN20:400:L0B_ADES:
-    symbols:
-      - ACCL:IN20:400:L0B_ADES
-    formula: ACCL:IN20:400:L0B_ADES
-    proto: pva
+    formula: "70.0"
   ACCL:IN20:400:L0B_PDES:
     symbols:
       - ACCL:IN20:400:L0B_PDES

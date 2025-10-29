@@ -7,7 +7,7 @@ import yaml
 import numpy as np
 import mlflow
 from mlflow_utils import MLflowRun, MLflowModelGetter
-from config import registered_model_name, model_version
+from configs.template_config import registered_model_name, model_version
 from transformers.transformer import InputPVTransformer
 
 
@@ -108,6 +108,7 @@ def run_iteration(model, interface, input_vars, interface_name, input_pv_transfo
     # Evaluate the model with the input
     model.input_validation_config = {k: "warn" for k in model.input_names}
     if interface_name == "epics":
+        # TODO: this was just for snd testing!!!
         # TODO: add transforms to base and remove this
         # Transform input from PV units to simulation units
         input_dict = model.input_transform(input_dict)
@@ -161,7 +162,7 @@ def main():
     )
 
     # Set up PV transformer
-    with open("model/config.yml", 'r') as f:
+    with open("configs/pv_config.yaml", 'r') as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
 
