@@ -24,6 +24,7 @@ class K2EGInterface:
             The application name for the K2EG client (e.g., 'app-three').
         """
         self.k2eg_client = k2eg.dml(environment_id, app_name)
+        self.name = "k2eg"
 
     def get_pv(
         self, pv_name: str, timeout: float = 5.0, proto: str = "ca://"

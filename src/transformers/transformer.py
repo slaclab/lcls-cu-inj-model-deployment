@@ -14,18 +14,58 @@ logger = logging.getLogger(__name__)
 
 
 class InputPVTransformer():
+    """
+    Transforms input PVs based on formulas defined in the configuration dictionary.
+
+    The required configuration dictionary should have the following structure:
+    {
+        'input_variables': {
+            'output_var1': {
+                'formula': 'input_var1 + input_var2',
+                'symbols': ['input_var1', 'input_var2']
+                'proto': 'pva',
+            },
+            'output_var2': {
+                'formula': 'input_var3 * 2',
+                'symbols': ['input_var3']
+                'proto': 'ca',
+            },
+            'output_var3': {
+                'formula': '42',
+            },
+            ...
+        }
+    }
+
+    For constant input PVs, the formula can simply be the constant value. Symbols should include the PV name,
+    if any, used in the formula. The protocol ('proto') key can be used to specify the
+    protocol for the output PV. This is optional and defaults to 'pva' if not provided.
+
+    Methods
+    -------
+    transform(input_dict)
+        Transforms the input PVs based on the defined formulas.
+    """
     def __init__(self, config):
+        """
+        Initializes the InputPVTransformer with the given configuration.
+
+        Parameters
+        ----------
+        config : dict
+            Configuration dictionary containing input variable mappings and formulas.
+        """
         pv_mapping = config['input_variables']
-        # Get all symbols
+        # Get all symbols (PVs) used in the formulas
         self.input_list = []
         for c in pv_mapping:
             try:
                 self.input_list.extend(pv_mapping[c]['symbols'])
             except KeyError:
-                print(f"no symbols for {c}")
+                logger.debug(f"No symbols for {c}")
 
         logger.debug('Initializing Transformer')
-        logger.debug(f'PV Mapping: {pv_mapping}') # pv mapping would be the input variable names of the model (main keys)
+        logger.debug(f'PV Mapping: {pv_mapping}')
         logger.debug(f'Symbol List: {self.input_list}')
         self.pv_mapping = pv_mapping
 
@@ -49,6 +89,19 @@ class InputPVTransformer():
             raise Exception(f'Invalid formula: {formula}: {e}')
 
     def transform(self, input_dict):
+        """
+        Transforms the input PVs based on the defined formulas in the config.
+
+        Parameters
+        ----------
+        input_dict: dict
+            Dictionary mapping PV names to their values and timestamps.
+
+        Returns
+        -------
+        dict
+            Dictionary mapping transformed variable names to their computed values and timestamps.
+        """
         for pv, value in input_dict.items():
             # assert value is float
             try:
@@ -71,9 +124,7 @@ class InputPVTransformer():
             raise e
 
     def _transform(self, input_dict):
-        transformed = {key: {"value": None, "posixseconds": None} for key in self.pv_mapping.keys()}
-        timestamps = [input_dict[key]["posixseconds"] for key in input_dict.keys()]
-        max_timestamp = max(timestamps)
+        transformed = {}
         pvs_renamed = {
             key.replace(':', '_'): value["value"] for key, value in input_dict.items()
         }
@@ -81,22 +132,15 @@ class InputPVTransformer():
         for key in self.pv_mapping.keys():
             try:
                 lambdified_formula = self.lambdified_formulas[key]
-                transformed[key]["value"] = lambdified_formula(*[
+                transformed[key] = lambdified_formula(*[
                     pvs_renamed[symbol.replace(':', '_')] for symbol in self.input_list
                 ])
 
-                if isinstance(transformed[key]["value"], np.ndarray):
-                    if transformed[key]["value"].shape[-1] == 1:
-                        transformed[key]["value"] = transformed[key]["value"].squeeze()
+                if isinstance(transformed[key], np.ndarray):
+                    if transformed[key].shape[-1] == 1:
+                        transformed[key] = transformed[key].squeeze()
                 else:
-                    transformed[key]["value"] = float(transformed[key]["value"])
-
-                # Preserve timestamp from input
-                try:
-                    transformed[key]["posixseconds"] = input_dict[key]["posixseconds"]
-                except KeyError:
-                    # TODO: actually set it to the max of the input PVs used in the formula
-                    transformed[key]["posixseconds"] = max_timestamp
+                    transformed[key] = float(transformed[key])
 
             except Exception as e:
                 logger.error(f'Error transforming: {e}')

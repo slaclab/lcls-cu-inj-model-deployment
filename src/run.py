@@ -44,18 +44,7 @@ def get_interface(interface_name, pvname_list=None):
         raise ValueError(f"Unknown interface: {interface_name}")
 
 
-def get_input_vars(model, interface_name):
-    if interface_name == "test":
-        # Use model input variable objects
-        return model.input_variables
-    elif interface_name == "epics" or interface_name == "k2eg":
-        # Use PV names from the model's pv_map
-        return model.input_names
-    else:
-        raise ValueError(f"Unknown interface: {interface_name}")
-
-
-def run_iteration(model, interface, input_vars, interface_name, input_pv_transformer):
+def run_iteration(model, interface, input_pv_transformer):
     """
     Run a single iteration of the SNDModel evaluation using the specified interface.
 
@@ -65,10 +54,6 @@ def run_iteration(model, interface, input_vars, interface_name, input_pv_transfo
         The lume-model wrapped model instance to evaluate.
     interface : object
         The interface instance (TestInterface or EPICSInterface) for input retrieval.
-    input_vars : list
-        List of input variable names or PVs, depending on the interface.
-    interface_name : str
-        The name of the interface to use ('test' or 'epics').
     input_pv_transformer : InputPVTransformer
         The transformer to convert PV inputs to model inputs.
 
@@ -76,43 +61,35 @@ def run_iteration(model, interface, input_vars, interface_name, input_pv_transfo
     -------
     None
     """
-    if interface_name == "test":
+    if interface.name == "test":
         # Get the input variable from the interface
-        input_dict = interface.get_input_variables(input_vars)
+        input_dict = interface.get_input_variables(model.input_variables)
 
-    elif interface_name == "epics" or interface_name == "k2eg":
-        # Get the input variables from the interface
+    elif interface.name == "epics" or interface.name == "k2eg":
+        # Get the values of input variables PVs from the interface
         input_dict_raw = interface.get_input_variables(input_pv_transformer.input_list)
+        # Save the latest timestamp from EPICS PVs for logging
+        max_posixseconds = int(max(d["posixseconds"] for d in input_dict_raw.values()))
         logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict_raw)}")
+
         # Get model inputs from PV inputs based on formulas defined in config.yaml
         input_dict = input_pv_transformer.transform(input_dict_raw)
-
-        # TODO: adjust how this is done so it's standard for the models
-        # TODO: validate that the model has PV names as the input names + any transforms
-        # Map PVs back to model input names
         logger.debug(f"Transformed input values from EPICS: {MultiLineDict(input_dict)}")
-        posixseconds = int(max(d["posixseconds"] for d in input_dict.values()))
-
-        # Add constant Pulse_length, TODO: make this standard
-        input_dict["Pulse_length"] = {"value": model.input_variables[1].default_value, "posixseconds": posixseconds}
-        input_dict = {
-            model.input_names[i]: input_dict[pv]["value"]
-            for i, pv in enumerate(input_vars)
-        }
 
     else:
-        raise ValueError(f"Unknown interface: {interface_name}")
+        raise ValueError(f"Unknown interface: {interface.name}")
 
     logger.debug("Input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model with the input
+    # TODO: make this optional? or a config? for now, just warn on all inputs
     model.input_validation_config = {k: "warn" for k in model.input_names}
-    if interface_name == "epics":
-        # TODO: this was just for snd testing!!!
-        # TODO: add transforms to base and remove this
-        # Transform input from PV units to simulation units
-        input_dict = model.input_transform(input_dict)
-        logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
+    # if interface.name == "epics":
+    #     # TODO: this was just for snd testing!!!
+    #     # TODO: add transforms to base and remove this
+    #     # Transform input from PV units to simulation units
+    #     input_dict = model.input_transform(input_dict)
+    #     logger.debug("Transformed input values: %s", MultiLineDict(input_dict))
 
     # Evaluate the model
     output = model.evaluate(input_dict)
@@ -122,7 +99,7 @@ def run_iteration(model, interface, input_vars, interface_name, input_pv_transfo
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
     mlflow.log_metrics(
         input_dict | output,
-        timestamp=(posixseconds * 1000 if interface_name == "epics" else None),
+        timestamp=(max_posixseconds * 1000 if interface.name in ("epics", "k2eg") else None),
     )
     logger.debug("Output values: %s", MultiLineDict(output))
 
@@ -156,15 +133,18 @@ def main():
     logger.info("Running with interface: %s", args.interface)
 
     model = MLflowModelGetter(registered_model_name, model_version).get_model()
-    input_vars = get_input_vars(model, args.interface)
-    interface = get_interface(
-        args.interface, input_vars if args.interface == "epics" else None
-    )
 
     # Set up PV transformer
+    # This is required to map from EPICS PV names to model input names, and apply any formulas
+    # defined in configs/pv_config.yaml. This is applicable only for EPICS/k2eg interfaces, and is in addition
+    # to the lume-model's own internal input_transform method, if any are defined.
     with open("configs/pv_config.yaml", 'r') as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
+
+    interface = get_interface(
+        args.interface, input_pv_transformer.input_list if args.interface == "epics" else None
+    )
 
     with MLflowRun() as run:
         # Log lockfile for complete reproducibility
@@ -175,7 +155,7 @@ def main():
         # Run the evaluation loop
         while True:
             try:
-                run_iteration(model, interface, input_vars, args.interface, input_pv_transformer)
+                run_iteration(model, interface, input_pv_transformer)
                 time.sleep(1)
             except KeyboardInterrupt:
                 logger.info("Keyboard interrupt received. Exiting.")

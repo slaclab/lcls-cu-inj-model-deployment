@@ -6,7 +6,9 @@ class EPICSInterface:
     """Interface for interacting with EPICS Process Variables (PVs)."""
 
     def __init__(self, pv_name_list=None):
-        """Check environment variables."""
+        """Instantiate and check environment variables."""
+        self.name = "epics"
+
         if "EPICS_CA_ADDR_LIST" not in os.environ:
             raise EnvironmentError(
                 "EPICS_CA_ADDR_LIST environment variable is not set."
@@ -15,6 +17,7 @@ class EPICSInterface:
             raise EnvironmentError(
                 "EPICS_CA_AUTO_ADDR_LIST environment variable is not set."
             )
+
         self.pv_objects = None
         if pv_name_list is not None:
             self.create_pvs(pv_name_list)
