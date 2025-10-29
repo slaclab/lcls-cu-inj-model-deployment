@@ -26,9 +26,7 @@ class K2EGInterface:
         self.k2eg_client = k2eg.dml(environment_id, app_name)
         self.name = "k2eg"
 
-    def get_pv(
-        self, pv_name: str, timeout: float = 5.0, proto: str = "ca"
-    ) -> Scalar:
+    def get_pv(self, pv_name: str, timeout: float = 5.0, proto: str = "ca") -> Scalar:
         """
         Retrieves the value of a process variable (PV) from K2EG.
 

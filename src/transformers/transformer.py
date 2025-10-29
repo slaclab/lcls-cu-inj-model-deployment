@@ -73,7 +73,9 @@ class InputPVTransformer:
             try:
                 self._validate_formulas(str(value["formula"]))
             except KeyError as e:
-                logger.error(f"No formula defined for {key}. A formula is required in the config.")
+                logger.error(
+                    f"No formula defined for {key}. A formula is required in the config."
+                )
                 raise e
         self.formulas = {}
         self.lambdified_formulas = {}
@@ -103,7 +105,10 @@ class InputPVTransformer:
         """
         proto_list = []
         for key in self.pv_mapping.keys():
-            if "symbols" in self.pv_mapping[key] and self.pv_mapping[key]["symbols"] is not None:
+            if (
+                "symbols" in self.pv_mapping[key]
+                and self.pv_mapping[key]["symbols"] is not None
+            ):
                 try:
                     proto_list.append(self.pv_mapping[key]["proto"])
                 except KeyError:
