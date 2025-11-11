@@ -45,7 +45,7 @@ ENV EPICS_CA_AUTO_ADDR_LIST=NO
 # please note that the "prefix" (path) needs to stay the same as in the build container
 WORKDIR /app
 COPY --from=build /app/.pixi/envs/$ENVIRONMENT /app/.pixi/envs/$ENVIRONMENT
-COPY --from=build /app/pixi.toml /app/pixi.toml
+COPY --from=build /app/pyproject.toml /app/pyproject.toml
 COPY --from=build /app/pixi.lock /app/pixi.lock
 # The ignore files are needed for 'pixi run' to work in the container
 COPY --from=build /app/.pixi/.gitignore /app/.pixi/.gitignore
