@@ -69,18 +69,18 @@ input_variables:
     formula: QUAD:IN20:525:BACT
     proto: ca
 output_variables:
-  OTRS:IN20:571:XRMS:
+  OTRS:IN20:571:XRMS_CU_HXR_LUME:
     proto: pva
-    name: OTRS:IN20:571:XRMS_CU_HXR_LUME
-  OTRS:IN20:571:YRMS:
+    formula: OTRS:IN20:571:XRMS
+  OTRS:IN20:571:YRMS_CU_HXR_LUME:
     proto: pva
-    name: OTRS:IN20:571:YRMS_CU_HXR_LUME
-  sigma_z:
+    name: OTRS:IN20:571:YRMS
+  ZRMS_CU_HXR_LUME:
     proto: pva
-    name: ZRMS_CU_HXR_LUME
-  norm_emit_x:
+    formula: sigma_z
+  EMITN_X_CU_HXR_LUME:
     proto: pva
-    name: EMITN_X_CU_HXR_LUME
-  norm_emit_y:
+    name: norm_emit_x
+  EMITN_Y_CU_HXR_LUME:
     proto: pva
-    name: EMITN_Y_CU_HXR_LUME
+    name: norm_emit_y

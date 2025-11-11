@@ -3,11 +3,12 @@ import sys
 import logging
 import time
 import collections
+from pathlib import Path
 import yaml
 import mlflow
-from mlflow_utils import MLflowRun, MLflowModelGetter
-from configs.template_config import registered_model_name, model_version, rate
-from transformers.transformer import InputPVTransformer
+from online_model.mlflow_utils import MLflowRun, MLflowModelGetter
+from online_model.configs.template_config import registered_model_name, model_version, rate
+from online_model.transformers.transformer import InputPVTransformer
 
 
 logging.basicConfig(
@@ -18,7 +19,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-PIXI_LOCKFILE_PATH = "/app/pixi.lock"
+PIXI_LOCKFILE_PATH = "/app/pixi.lock"  # Path to the pixi lockfile inside the container
+CONFIG_PATH = Path(__file__).parent / "configs" / "pv_config.yaml"
 
 
 class MultiLineDict(collections.UserDict):
@@ -28,15 +30,15 @@ class MultiLineDict(collections.UserDict):
 
 def get_interface(interface_name, pvname_list=None):
     if interface_name == "test":
-        from interface.test_interface import TestInterface
+        from online_model.interface.test_interface import TestInterface
 
         return TestInterface()
     elif interface_name == "epics":
-        from interface.epics_interface import EPICSInterface
+        from online_model.interface.epics_interface import EPICSInterface
 
         return EPICSInterface(pvname_list)
     elif interface_name == "k2eg":
-        from interface.k2eg_interface import K2EGInterface
+        from online_model.interface.k2eg_interface import K2EGInterface
 
         return K2EGInterface()
     else:
@@ -93,6 +95,9 @@ def run_iteration(model, interface, input_pv_transformer):
     # Evaluate the model
     output = model.evaluate(input_dict)
 
+    # Write output to PVs if applicable
+    # TODO
+
     # Log input after transformation and output
     # one line to log at same timestamp
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
@@ -139,7 +144,7 @@ def main():
     # This is required to map from EPICS PV names to model input names, and apply any formulas
     # defined in configs/pv_config.yaml. This is applicable only for EPICS/k2eg interfaces, and is in addition
     # to the lume-model's own internal input_transform method, if any are defined.
-    with open("configs/pv_config.yaml", "r") as f:
+    with open(CONFIG_PATH, "r") as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
 
@@ -163,7 +168,7 @@ def main():
                 time.sleep(rate)
             except KeyboardInterrupt:
                 logger.info("Keyboard interrupt received. Exiting.")
-                exit(0)
+                break
             except Exception as e:
                 raise e
 

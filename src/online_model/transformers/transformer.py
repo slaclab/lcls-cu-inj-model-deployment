@@ -12,6 +12,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# TODO: make abstract base class for transformers to avoid code duplication
+
 class InputPVTransformer:
     """
     Transforms input PVs based on formulas defined in the configuration dictionary.
@@ -19,18 +21,25 @@ class InputPVTransformer:
     The required configuration dictionary should have the following structure:
     {
         'input_variables': {
-            'output_var1': {
+            'model_input_var1': {
                 'formula': 'input_var1 + input_var2',
                 'symbols': ['input_var1', 'input_var2']
                 'proto': 'pva',
             },
-            'output_var2': {
+            'model_input_var2': {
                 'formula': 'input_var3 * 2',
                 'symbols': ['input_var3']
                 'proto': 'ca',
             },
-            'output_var3': {
+            'input_var3': {
                 'formula': '42',
+            },
+            ...
+        }
+        'output_variables': {
+            'output_var1': {
+                'formula': 'model_input_var1 / model_input_var2',
+                'proto': 'pva',
             },
             ...
         }
@@ -180,3 +189,47 @@ class InputPVTransformer:
                 raise e
 
         return transformed
+
+
+# class OutputPVTransformer:
+#     """
+#     Transforms output PVs based on formulas defined in the configuration dictionary.
+#
+#     The required configuration dictionary should have the following structure:
+#     {
+#         'input_variables': {
+#             'model_input_var1': {
+#                 'formula': 'input_var1 + input_var2',
+#                 'symbols': ['input_var1', 'input_var2']
+#                 'proto': 'pva',
+#             },
+#             'model_input_var2': {
+#                 'formula': 'input_var3 * 2',
+#                 'symbols': ['input_var3']
+#                 'proto': 'ca',
+#             },
+#             'input_var3': {
+#                 'formula': '42',
+#             },
+#             ...
+#         }
+#         'output_variables': {
+#             'output_var1': {
+#                 'formula': 'model_input_var1 / model_input_var2',
+#                 'proto': 'pva',
+#             },
+#             ...
+#         }
+#     }
+#
+#     For constant input PVs, the formula can simply be the constant value. Symbols should include the PV name,
+#     if any, used in the formula. The protocol ('proto') key can be used to specify the
+#     protocol for the output PV. This is optional and defaults to 'pva' if not provided.
+#
+#     Methods
+#     -------
+#     transform(input_dict)
+#         Transforms the input PVs based on the defined formulas.
+#     """
+#
+#     def __init__(self, config):
