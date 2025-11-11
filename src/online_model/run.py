@@ -7,7 +7,11 @@ from pathlib import Path
 import yaml
 import mlflow
 from online_model.mlflow_utils import MLflowRun, MLflowModelGetter
-from online_model.configs.template_config import registered_model_name, model_version, rate
+from online_model.configs.template_config import (
+    registered_model_name,
+    model_version,
+    rate,
+)
 from online_model.transformers.transformer import InputPVTransformer
 
 

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: make abstract base class for transformers to avoid code duplication
 
+
 class InputPVTransformer:
     """
     Transforms input PVs based on formulas defined in the configuration dictionary.
