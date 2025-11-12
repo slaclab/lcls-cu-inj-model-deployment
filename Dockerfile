@@ -23,7 +23,6 @@ RUN pixi install --environment $ENVIRONMENT
 # Create the shell-hook bash script to activate the environment
 RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
     cat config/config_entrypoint.sh >> /app/entrypoint.sh && \
-    pip install . &&\
     pixi shell-hook --environment $ENVIRONMENT -s bash >> /app/entrypoint.sh && \
     echo '"$@"' >> /app/entrypoint.sh && \
     echo 'status=$?' >> /app/entrypoint.sh && \
@@ -53,9 +52,9 @@ COPY --from=build /app/.pixi/.gitignore /app/.pixi/.gitignore
 COPY --from=build /app/.pixi/.condapackageignore /app/.pixi/.condapackageignore
 COPY --from=build --chmod=0755 /app/entrypoint.sh /app/entrypoint.sh
 
-COPY . /app/src
+COPY . /app
 
-WORKDIR /app/src
+WORKDIR /app
 
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
 # no more pixi needed in the prod container
