@@ -79,7 +79,7 @@ def get_model_inputs(model, interface, input_pv_transformer):
         # Get the values of input variables PVs from the interface
         args = {"input_pvs": input_pv_transformer.input_list}
         if interface.name == "k2eg":
-            args["protos"] = input_pv_transformer.get_proto_list()
+            args["protos"] = input_pv_transformer.proto_list
         input_dict_raw = interface.get_input_variables(**args)
 
         # Save the latest timestamp from EPICS PVs for logging

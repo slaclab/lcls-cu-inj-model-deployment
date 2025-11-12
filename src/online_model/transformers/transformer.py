@@ -68,9 +68,18 @@ class InputPVTransformer:
         self.pv_mapping = config["input_variables"]
         # Get all symbols (PVs) used in the formulas
         self.input_list = []
+        self.proto_list = []
         for c in self.pv_mapping:
             try:
-                self.input_list.extend(self.pv_mapping[c]["symbols"])
+                if "symbols" in self.pv_mapping[c] and self.pv_mapping[c]["symbols"] is not None:
+                    for symbol in self.pv_mapping[c]["symbols"]:
+                        if symbol not in self.input_list:
+                            self.input_list.append(symbol)
+                            try:
+                                self.proto_list.append(self.pv_mapping[c]["proto"])
+                            except KeyError:
+                                logger.error(f"No proto defined for PV {symbol}, defaulting to 'ca'.")
+                                self.proto_list.append("ca")
             except KeyError:
                 logger.debug(f"No symbols for {c}")
 
@@ -102,30 +111,6 @@ class InputPVTransformer:
             sp.sympify(formula.replace(":", "_"))
         except Exception as e:
             raise Exception(f"Invalid formula: {formula}: {e}")
-
-    def get_proto_list(self):
-        """
-        Retrieves the protocol list for the output PVs based on the configuration.
-
-        Returns
-        -------
-        list
-            List of protocols corresponding to each input variable that has one or more specified symbols.
-        """
-        proto_list = []
-        for key in self.pv_mapping.keys():
-            if (
-                "symbols" in self.pv_mapping[key]
-                and self.pv_mapping[key]["symbols"] is not None
-            ):
-                try:
-                    proto_list.append(self.pv_mapping[key]["proto"])
-                except KeyError:
-                    logger.error(f"No proto defined for PV {key}, defaulting to 'ca'.")
-                    proto_list.append("ca")
-            else:
-                logger.debug(f"No proto defined for constant PV {key}.")
-        return proto_list
 
     def transform(self, input_dict):
         """
@@ -278,26 +263,6 @@ class InputPVTransformer:
 #             sp.sympify(formula.replace(":", "_"))
 #         except Exception as e:
 #             raise Exception(f"Invalid formula: {formula}: {e}")
-#
-#     def get_proto_list(self):
-#         """
-#         Retrieves the protocol list for the output PVs based on the configuration.
-#
-#         Returns
-#         -------
-#         list
-#             List of protocols corresponding to each output variable that has one or more specified symbols.
-#         """
-#         proto_list = []
-#         for key in self.pv_mapping.keys():
-#             try:
-#                 proto_list.append(self.pv_mapping[key]["proto"])
-#             except KeyError:
-#                 logger.error(f"No proto defined for PV {key}, defaulting to 'ca'.")
-#                 proto_list.append("ca")
-#             else:
-#                 logger.debug(f"No proto defined for constant PV {key}.")
-#         return proto_list
 #
 #     def transform(self, output_dict):
 #         """
