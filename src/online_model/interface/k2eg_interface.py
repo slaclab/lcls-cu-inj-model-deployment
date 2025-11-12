@@ -12,7 +12,7 @@ class K2EGInterface:
         The K2EG client used to interact with the K2EG system.
     """
 
-    def __init__(self, environment_id: str = "lcls", app_name: str = "app-three"):
+    def __init__(self, environment_id: str = "lcls", app_name: str = "app-ad-online-ml"):
         """
         Initializes the K2EGInterface with a K2EG client.
 
