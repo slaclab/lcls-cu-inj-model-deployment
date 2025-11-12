@@ -23,6 +23,7 @@ RUN pixi install --environment $ENVIRONMENT
 # Create the shell-hook bash script to activate the environment
 RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
     cat config/config_entrypoint.sh >> /app/entrypoint.sh && \
+    pip install . &&\
     pixi shell-hook --environment $ENVIRONMENT -s bash >> /app/entrypoint.sh && \
     echo '"$@"' >> /app/entrypoint.sh && \
     echo 'status=$?' >> /app/entrypoint.sh && \
