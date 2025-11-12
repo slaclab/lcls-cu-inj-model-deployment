@@ -26,34 +26,34 @@ version_file = "src/online_model/_version.py"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.pixi.workspace]
-channels = ["https://prefix.dev/conda-forge"]
-platforms = ["linux-64", "osx-arm64"]
-
-[tool.pixi.dependencies]
-python = ">=3.12,<3.13"
-
-[tool.pixi.pypi-dependencies]
-pyepics = "*"
-k2eg = "*"
-# mlflow on conda is at 3.2.0 but we probably need 3.4.x so can't install lume and mlflow from conda
-mlflow = "==3.4.*"
-lume-model = ">=2.0.0"
-sympy = "*"
-online_model = { path = ".", editable = true }
-
-#[tool.pixi.feature.gpu]
-#system-requirements = { cuda = "12.0" }
-#[tool.pixi.feature.gpu.pypi-dependencies]
-#torch = { version = ">=2.6.0", index = "https://download.pytorch.org/whl/cu124" }
-
-[tool.pixi.feature.cpu.pypi-dependencies]
-torch = { version = ">=2.7.1", index = "https://download.pytorch.org/whl/cpu" }
-
-[tool.pixi.environments]
-#gpu = ["gpu"]
-# Make CPU the default environment
-default = ["cpu"]
-
-[tool.pixi.tasks]
-start = "python -m run.py --interface test"
+#[tool.pixi.workspace]
+#channels = ["https://prefix.dev/conda-forge"]
+#platforms = ["linux-64", "osx-arm64"]
+#
+#[tool.pixi.dependencies]
+#python = ">=3.12,<3.13"
+#
+#[tool.pixi.pypi-dependencies]
+#pyepics = "*"
+#k2eg = "*"
+## mlflow on conda is at 3.2.0 but we probably need 3.4.x so can't install lume and mlflow from conda
+#mlflow = "==3.4.*"
+#lume-model = ">=2.0.0"
+#sympy = "*"
+#online_model = { path = ".", editable = true }
+#
+##[tool.pixi.feature.gpu]
+##system-requirements = { cuda = "12.0" }
+##[tool.pixi.feature.gpu.pypi-dependencies]
+##torch = { version = ">=2.6.0", index = "https://download.pytorch.org/whl/cu124" }
+#
+#[tool.pixi.feature.cpu.pypi-dependencies]
+#torch = { version = ">=2.7.1", index = "https://download.pytorch.org/whl/cpu" }
+#
+#[tool.pixi.environments]
+##gpu = ["gpu"]
+## Make CPU the default environment
+#default = ["cpu"]
+#
+#[tool.pixi.tasks]
+#start = "python -m run.py --interface test"
