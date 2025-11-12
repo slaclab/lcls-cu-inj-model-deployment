@@ -14,9 +14,8 @@ dependencies = [
     "pyepics",
     "k2eg",
     # mlflow on conda is at 3.2.0 but we probably need 3.4.x so can't install lume and mlflow from conda in pixi
-    "lume-model>=2.0.0",
     "mlflow==3.4.*",
-    "pyyaml",
+    "lume-model>=2.0",
     "sympy",
 ]
 
@@ -31,7 +30,16 @@ where = ["src"]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64"]
 
+[tool.pixi.dependencies]
+python = ">=3.12,<3.13"
+
 [tool.pixi.pypi-dependencies]
+pyepics = "*"
+k2eg = "*"
+# mlflow on conda is at 3.2.0 but we probably need 3.4.x so can't install lume and mlflow from conda
+mlflow = "==3.4.*"
+lume-model = ">=2.0.0"
+sympy = "*"
 online_model = { path = ".", editable = true }
 
 #[tool.pixi.feature.gpu]

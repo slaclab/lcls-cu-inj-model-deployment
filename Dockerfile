@@ -54,12 +54,11 @@ COPY --from=build --chmod=0755 /app/entrypoint.sh /app/entrypoint.sh
 
 COPY . /app/src
 
-# TODO: fix this
-WORKDIR /app/src/src
+WORKDIR /app/src
 
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
 # no more pixi needed in the prod container
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # TODO: make this dynamic based on interface choice
-CMD ["python", "-m", "run", "--interface", "k2eg"]
+CMD ["python", "-m", "src.online_model.run", "--interface", "k2eg"]

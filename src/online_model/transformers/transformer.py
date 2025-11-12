@@ -65,19 +65,18 @@ class InputPVTransformer:
         config : dict
             Configuration dictionary containing input variable mappings and formulas.
         """
-        pv_mapping = config["input_variables"]
+        self.pv_mapping = config["input_variables"]
         # Get all symbols (PVs) used in the formulas
         self.input_list = []
-        for c in pv_mapping:
+        for c in self.pv_mapping:
             try:
-                self.input_list.extend(pv_mapping[c]["symbols"])
+                self.input_list.extend(self.pv_mapping[c]["symbols"])
             except KeyError:
                 logger.debug(f"No symbols for {c}")
 
         logger.debug("Initializing Transformer")
-        logger.debug(f"PV Mapping: {pv_mapping}")
+        logger.debug(f"PV Mapping: {self.pv_mapping}")
         logger.debug(f"Symbol List: {self.input_list}")
-        self.pv_mapping = pv_mapping
 
         for key, value in self.pv_mapping.items():
             try:
@@ -223,14 +222,142 @@ class InputPVTransformer:
 #         }
 #     }
 #
-#     For constant input PVs, the formula can simply be the constant value. Symbols should include the PV name,
-#     if any, used in the formula. The protocol ('proto') key can be used to specify the
+#     The protocol ('proto') key can be used to specify the
 #     protocol for the output PV. This is optional and defaults to 'pva' if not provided.
 #
 #     Methods
 #     -------
-#     transform(input_dict)
-#         Transforms the input PVs based on the defined formulas.
+#     transform(output_dict)
+#         Transforms the output PVs based on the defined formulas.
 #     """
 #
 #     def __init__(self, config):
+#         """
+#         Initializes the OutputPVTransformer with the given configuration.
+#
+#         Parameters
+#         ----------
+#         config : dict
+#             Configuration dictionary containing input variable mappings and formulas.
+#         """
+#         # todo: if no output variables defined, skip transformer (not writing outputs to PVs)
+#         self.pv_mapping = config["output_variables"]
+#         # Get all symbols (PVs) used in the formulas
+#         self.output_list = []
+#         for c in self.pv_mapping:
+#             try:
+#                 self.output_list.extend(self.pv_mapping[c]["symbols"])
+#             except KeyError:
+#                 logger.debug(f"No symbols for {c}")
+#
+#         logger.debug("Initializing Output Transformer")
+#         logger.debug(f"PV Mapping: {self.pv_mapping}")
+#         logger.debug(f"Symbol List: {self.output_list}")
+#
+#         for key, value in self.pv_mapping.items():
+#             try:
+#                 self._validate_formulas(str(value["formula"]))
+#             except KeyError as e:
+#                 logger.error(
+#                     f"No formula defined for {key}. A formula is required in the config."
+#                 )
+#                 raise e
+#         self.formulas = {}
+#         self.lambdified_formulas = {}
+#         for key, value in self.pv_mapping.items():
+#             self.formulas[key] = sp.sympify(str(value["formula"]).replace(":", "_"))
+#             input_list_renamed = [
+#                 symbol.replace(":", "_") for symbol in self.output_list
+#             ]
+#             self.lambdified_formulas[key] = sp.lambdify(
+#                 input_list_renamed, self.formulas[key], modules="numpy"
+#             )
+#
+#     def _validate_formulas(self, formula: str):
+#         try:
+#             sp.sympify(formula.replace(":", "_"))
+#         except Exception as e:
+#             raise Exception(f"Invalid formula: {formula}: {e}")
+#
+#     def get_proto_list(self):
+#         """
+#         Retrieves the protocol list for the output PVs based on the configuration.
+#
+#         Returns
+#         -------
+#         list
+#             List of protocols corresponding to each output variable that has one or more specified symbols.
+#         """
+#         proto_list = []
+#         for key in self.pv_mapping.keys():
+#             try:
+#                 proto_list.append(self.pv_mapping[key]["proto"])
+#             except KeyError:
+#                 logger.error(f"No proto defined for PV {key}, defaulting to 'ca'.")
+#                 proto_list.append("ca")
+#             else:
+#                 logger.debug(f"No proto defined for constant PV {key}.")
+#         return proto_list
+#
+#     def transform(self, output_dict):
+#         """
+#         Transforms the output PVs based on the defined formulas in the config.
+#
+#         Parameters
+#         ----------
+#         output_dict: dict
+#             Dictionary mapping PV names to their values and timestamps.
+#
+#         Returns
+#         -------
+#         dict
+#             Dictionary mapping transformed variable names to their computed values and timestamps.
+#         """
+#         for pv, value in output_dict.items():
+#             # assert value is float
+#             try:
+#                 if isinstance(value["value"], (float, int, np.float32)):
+#                     value["value"] = float(value["value"])
+#                 elif isinstance(value["value"], (np.ndarray, list)):
+#                     value["value"] = np.array(value["value"]).astype(float)
+#                 else:
+#                     raise Exception(
+#                         f"Invalid type for value: {value['value']}, type: {type(value['value'])}"
+#                     )
+#             except Exception as e:
+#                 logger.error(f"Error converting value to float: {e}")
+#                 raise e
+#
+#         try:
+#             return self._transform(output_dict)
+#         except Exception as e:
+#             logger.error(f"Error transforming: {e}")
+#             raise e
+#
+#     def _transform(self, input_dict):
+#         transformed = {}
+#         pvs_renamed = {
+#             key.replace(":", "_"): value["value"] for key, value in input_dict.items()
+#         }
+#
+#         for key in self.pv_mapping.keys():
+#             try:
+#                 lambdified_formula = self.lambdified_formulas[key]
+#                 transformed[key] = lambdified_formula(
+#                     *[
+#                         pvs_renamed[symbol.replace(":", "_")]
+#                         for symbol in self.output_list
+#                     ]
+#                 )
+#
+#                 if isinstance(transformed[key], np.ndarray):
+#                     if transformed[key].shape[-1] == 1:
+#                         transformed[key] = transformed[key].squeeze()
+#                 else:
+#                     transformed[key] = float(transformed[key])
+#
+#             except Exception as e:
+#                 logger.error(f"Error transforming: {e}")
+#                 raise e
+#
+#         return transformed

@@ -17,8 +17,8 @@ spec:
       - name: lcls-cu-inj-model
         image: ghcr.io/slaclab/lcls-cu-inj-model:test
         imagePullPolicy: Always
-        command: [ "/bin/bash", "-c" ]
-        args: [ "sleep infinity" ]
+#        command: [ "/bin/bash", "-c" ]
+#        args: [ "sleep infinity" ]
         resources:
           limits:
             memory: "2Gi"

@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 PIXI_LOCKFILE_PATH = "/app/pixi.lock"  # Path to the pixi lockfile inside the container
-CONFIG_PATH = Path(__file__).parent / "configs" / "pv_config.yaml"
+CONFIG_PATH = Path(__file__).parent / "configs" / "pv_mapping.yaml"
 
 
 class MultiLineDict(collections.UserDict):
@@ -49,26 +49,31 @@ def get_interface(interface_name, pvname_list=None):
         raise ValueError(f"Unknown interface: {interface_name}")
 
 
-def run_iteration(model, interface, input_pv_transformer):
+def get_model_inputs(model, interface, input_pv_transformer):
     """
-    Run a single iteration of the SNDModel evaluation using the specified interface.
+    Step 1: Retrieve and transform inputs for the model based on the interface.
+    Handles test, epics, and k2eg interfaces, including timestamp extraction and logging.
 
     Parameters
     ----------
     model : LUMEBaseModel
         The lume-model wrapped model instance to evaluate.
-    interface : object
-        The interface instance (TestInterface or EPICSInterface) for input retrieval.
+    interface : Interface
+         The interface instance (TestInterface, EPICSInterface, or K2EGInterface) for input retrieval.
     input_pv_transformer : InputPVTransformer
-        The transformer to convert PV inputs to model inputs.
+        The transformer to map and transform input PVs to model inputs.
 
     Returns
     -------
-    None
+    input_dict : dict
+        The dictionary of input values for the model.
+    max_posixseconds : int or None
+        The maximum posixseconds timestamp from inputs, if applicable.
     """
     if interface.name == "test":
-        # Get the input variable from the interface
+        # Get random input variable (within the ranges) from the interface
         input_dict = interface.get_input_variables(model.input_variables)
+        max_posixseconds = None
 
     elif interface.name in ("epics", "k2eg"):
         # Get the values of input variables PVs from the interface
@@ -81,37 +86,90 @@ def run_iteration(model, interface, input_pv_transformer):
         max_posixseconds = int(max(d["posixseconds"] for d in input_dict_raw.values()))
         logger.debug(f"Raw input values from EPICS: {MultiLineDict(input_dict_raw)}")
 
-        # Get model inputs from PV inputs based on formulas defined in config.yaml
+        # Get model inputs from PV inputs based on formulas defined in pv_mapping.yaml
         input_dict = input_pv_transformer.transform(input_dict_raw)
-        logger.debug(
-            f"Transformed input values from EPICS: {MultiLineDict(input_dict)}"
-        )
+        logger.debug(f"Transformed input values from EPICS: {MultiLineDict(input_dict)}")
 
     else:
         raise ValueError(f"Unknown interface: {interface.name}")
 
     logger.debug("Input values: %s", MultiLineDict(input_dict))
+    return input_dict, max_posixseconds
 
+
+def evaluate_model(model, input_dict):
+    """
+    Step 2: Evaluate the model with the given inputs.
+    Sets input validation config and runs model.evaluate.
+
+    Parameters
+    ----------
+    model : LUMEBaseModel
+        The lume-model wrapped model instance to evaluate.
+    input_dict : dict
+        The dictionary of input values for the model.
+
+    Returns
+    -------
+    output : dict
+        The dictionary of output values from the model.
+    """
     # Set custom input validation to warn on all inputs
     # TODO: make this optional? or a config? for now, just warn on all inputs
     model.input_validation_config = {k: "warn" for k in model.input_names}
-
-    # Evaluate the model
     output = model.evaluate(input_dict)
+    return output
 
-    # Write output to PVs if applicable
-    # TODO
 
-    # Log input after transformation and output
-    # one line to log at same timestamp
+def write_output_and_log(output, input_dict, max_posixseconds, interface):
+    """
+    Step 3: Write output to PVs if applicable and log metrics to MLflow.
+    Handles timestamp for epics/k2eg and logs output values.
+
+    Parameters
+    ----------
+    output : dict
+        The dictionary of output values from the model.
+    input_dict : dict
+        The dictionary of input values for the model.
+    max_posixseconds : int or None
+        The maximum posixseconds timestamp from inputs, if applicable.
+    interface : Interface
+        The interface instance (TestInterface, EPICSInterface, or K2EGInterface).
+    """
+    # TODO: Write output to PVs if applicable
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
     mlflow.log_metrics(
         input_dict | output,
-        timestamp=(
-            max_posixseconds * 1000 if interface.name in ("epics", "k2eg") else None
-        ),
+        timestamp=(max_posixseconds * 1000 if max_posixseconds and interface.name in ("epics", "k2eg") else None),
     )
     logger.debug("Output values: %s", MultiLineDict(output))
+
+
+def run_iteration(model, interface, input_pv_transformer):
+    """
+    Orchestrates a single iteration of the model evaluation using the specified interface.
+    Step 1: Input retrieval and transformation
+    Step 2: Model evaluation
+    Step 3: Output writing and logging
+
+    Parameters
+    ----------
+    model : LUMEBaseModel
+        The lume-model wrapped model instance to evaluate.
+    interface : Interface
+        The interface instance (TestInterface, EPICSInterface, or K2EGInterface) for
+        input retrieval.
+    input_pv_transformer : InputPVTransformer
+        The transformer to map and transform input PVs to model inputs.
+
+    Returns
+    -------
+    None
+    """
+    input_dict, max_posixseconds = get_model_inputs(model, interface, input_pv_transformer)
+    output = evaluate_model(model, input_dict)
+    write_output_and_log(output, input_dict, max_posixseconds, interface)
 
 
 def main():
@@ -146,7 +204,7 @@ def main():
 
     # Set up PV transformer
     # This is required to map from EPICS PV names to model input names, and apply any formulas
-    # defined in configs/pv_config.yaml. This is applicable only for EPICS/k2eg interfaces, and is in addition
+    # defined in configs/pv_mapping.yaml. This is applicable only for EPICS/k2eg interfaces, and is in addition
     # to the lume-model's own internal input_transform method, if any are defined.
     with open(CONFIG_PATH, "r") as f:
         config_yaml = yaml.safe_load(f)
