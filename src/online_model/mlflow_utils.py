@@ -31,17 +31,19 @@ class MLflowRun:
         tracking_uri=mlflow_tracking_uri,
         experiment_name=deployment_name,
         run_prefix=f"{deployment_name} run",
+        tags=None,
     ):
         self.run_prefix = run_prefix
         self.tracking_uri = tracking_uri
         self.experiment_name = experiment_name
+        self.tags = tags
         self.run_name = self.setup_experiment()
 
     def __enter__(self):
         """
         Start an MLflow run and return the run object.
         """
-        self.run = mlflow.start_run(run_name=self.run_name)
+        self.run = mlflow.start_run(run_name=self.run_name, tags=self.tags)
         logger.info(f"Started MLflow run: {self.run_name}")
         return self.run
 

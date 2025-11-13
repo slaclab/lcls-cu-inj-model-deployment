@@ -9,10 +9,10 @@ import mlflow
 from online_model.mlflow_utils import MLflowRun, MLflowModelGetter
 from online_model.configs.template_config import (
     registered_model_name,
-    model_version,
     rate,
 )
 from online_model.transformers.transformer import InputPVTransformer
+import os
 
 
 logging.basicConfig(
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 PIXI_LOCKFILE_PATH = "/app/pixi.lock"  # Path to the pixi lockfile inside the container
 CONFIG_PATH = Path(__file__).parent / "configs" / "pv_mapping.yaml"
+model_version = os.environ.get("MODEL_VERSION", None)
 
 
 class MultiLineDict(collections.UserDict):
@@ -88,7 +89,9 @@ def get_model_inputs(model, interface, input_pv_transformer):
 
         # Get model inputs from PV inputs based on formulas defined in pv_mapping.yaml
         input_dict = input_pv_transformer.transform(input_dict_raw)
-        logger.debug(f"Transformed input values from EPICS: {MultiLineDict(input_dict)}")
+        logger.debug(
+            f"Transformed input values from EPICS: {MultiLineDict(input_dict)}"
+        )
 
     else:
         raise ValueError(f"Unknown interface: {interface.name}")
@@ -141,7 +144,11 @@ def write_output_and_log(output, input_dict, max_posixseconds, interface):
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
     mlflow.log_metrics(
         input_dict | output,
-        timestamp=(max_posixseconds * 1000 if max_posixseconds and interface.name in ("epics", "k2eg") else None),
+        timestamp=(
+            max_posixseconds * 1000
+            if max_posixseconds and interface.name in ("epics", "k2eg")
+            else None
+        ),
     )
     logger.debug("Output values: %s", MultiLineDict(output))
 
@@ -167,7 +174,9 @@ def run_iteration(model, interface, input_pv_transformer):
     -------
     None
     """
-    input_dict, max_posixseconds = get_model_inputs(model, interface, input_pv_transformer)
+    input_dict, max_posixseconds = get_model_inputs(
+        model, interface, input_pv_transformer
+    )
     output = evaluate_model(model, input_dict)
     write_output_and_log(output, input_dict, max_posixseconds, interface)
 
@@ -215,7 +224,9 @@ def main():
         input_pv_transformer.input_list if args.interface == "epics" else None,
     )
 
-    with MLflowRun() as _:
+    with MLflowRun(
+        tags={"model_name": registered_model_name, "model_version": model_version}
+    ) as _:
         # Log lockfile for complete reproducibility
         try:
             mlflow.log_artifact(PIXI_LOCKFILE_PATH, "pixi_lockfile")

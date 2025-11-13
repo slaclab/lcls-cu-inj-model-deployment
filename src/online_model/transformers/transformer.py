@@ -71,14 +71,19 @@ class InputPVTransformer:
         self.proto_list = []
         for c in self.pv_mapping:
             try:
-                if "symbols" in self.pv_mapping[c] and self.pv_mapping[c]["symbols"] is not None:
+                if (
+                    "symbols" in self.pv_mapping[c]
+                    and self.pv_mapping[c]["symbols"] is not None
+                ):
                     for symbol in self.pv_mapping[c]["symbols"]:
                         if symbol not in self.input_list:
                             self.input_list.append(symbol)
                             try:
                                 self.proto_list.append(self.pv_mapping[c]["proto"])
                             except KeyError:
-                                logger.error(f"No proto defined for PV {symbol}, defaulting to 'ca'.")
+                                logger.error(
+                                    f"No proto defined for PV {symbol}, defaulting to 'ca'."
+                                )
                                 self.proto_list.append("ca")
             except KeyError:
                 logger.debug(f"No symbols for {c}")

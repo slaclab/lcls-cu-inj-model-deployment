@@ -43,4 +43,5 @@ torch = { version = ">=2.7.1", index = "https://download.pytorch.org/whl/cpu" }
 
 [tool.pixi.environments]
 default = ["cpu"]
+cpu = ["cpu"]
 #gpu = ["gpu"]
