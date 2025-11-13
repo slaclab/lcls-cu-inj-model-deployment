@@ -40,4 +40,4 @@ spec:
                 name: k2eg-secrets
                 key: k2eg_cmd_topic
           - name: MODEL_VERSION
-            value: 1
+            value: "1"
