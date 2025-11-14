@@ -11,7 +11,10 @@ from online_model.configs.template_config import (
     registered_model_name,
     rate,
 )
-from online_model.transformers.transformer import InputPVTransformer
+from online_model.transformers.transformer import (
+    InputPVTransformer,
+    OutputPVTransformer,
+)
 import os
 
 
@@ -121,10 +124,13 @@ def evaluate_model(model, input_dict):
     # TODO: make this optional? or a config? for now, just warn on all inputs
     model.input_validation_config = {k: "warn" for k in model.input_names}
     output = model.evaluate(input_dict)
+    logger.debug("Model output values: %s", MultiLineDict(output))
     return output
 
 
-def write_output_and_log(output, input_dict, max_posixseconds, interface):
+def write_output_and_log(
+    output, input_dict, max_posixseconds, interface, output_pv_transformer
+):
     """
     Step 3: Write output to PVs if applicable and log metrics to MLflow.
     Handles timestamp for epics/k2eg and logs output values.
@@ -139,9 +145,25 @@ def write_output_and_log(output, input_dict, max_posixseconds, interface):
         The maximum posixseconds timestamp from inputs, if applicable.
     interface : Interface
         The interface instance (TestInterface, EPICSInterface, or K2EGInterface).
+    output_pv_transformer : OutputPVTransformer
+        The transformer to map and transform model outputs to output PVs.
     """
-    # TODO: Write output to PVs if applicable
+    # Write output to PVs if applicable
+    if interface.name in ("epics", "k2eg"):
+        output_pv = output_pv_transformer.transform(output)
+        args = {"output_dict": output_pv}
+        if interface.name == "k2eg":
+            args["protos"] = output_pv_transformer.proto_list
+        interface.put(**args)
+        logger.debug(
+            f"Mapped output values to write to EPICS: {MultiLineDict(output_pv)}"
+        )
+    elif interface.name == "test":
+        logger.info("No PV writing for test interface.")
+        pass
+
     # TODO: add epics timestamp to DB as well, and log all to wall clock time
+    # Writing model outputs to MLflow (not outputs mapped to PVs)
     mlflow.log_metrics(
         input_dict | output,
         timestamp=(
@@ -150,10 +172,10 @@ def write_output_and_log(output, input_dict, max_posixseconds, interface):
             else None
         ),
     )
-    logger.debug("Output values: %s", MultiLineDict(output))
+    logger.info("Wrote input and output metrics to MLflow.")
 
 
-def run_iteration(model, interface, input_pv_transformer):
+def run_iteration(model, interface, input_pv_transformer, output_pv_transformer):
     """
     Orchestrates a single iteration of the model evaluation using the specified interface.
     Step 1: Input retrieval and transformation
@@ -169,6 +191,8 @@ def run_iteration(model, interface, input_pv_transformer):
         input retrieval.
     input_pv_transformer : InputPVTransformer
         The transformer to map and transform input PVs to model inputs.
+    output_pv_transformer : OutputPVTransformer
+        The transformer to map and transform model outputs to output PVs.
 
     Returns
     -------
@@ -178,7 +202,9 @@ def run_iteration(model, interface, input_pv_transformer):
         model, interface, input_pv_transformer
     )
     output = evaluate_model(model, input_dict)
-    write_output_and_log(output, input_dict, max_posixseconds, interface)
+    write_output_and_log(
+        output, input_dict, max_posixseconds, interface, output_pv_transformer
+    )
 
 
 def main():
@@ -218,6 +244,7 @@ def main():
     with open(CONFIG_PATH, "r") as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
+    output_pv_transformer = OutputPVTransformer(config_yaml)
 
     interface = get_interface(
         args.interface,
@@ -237,7 +264,9 @@ def main():
         # Run the evaluation loop
         while True:
             try:
-                run_iteration(model, interface, input_pv_transformer)
+                run_iteration(
+                    model, interface, input_pv_transformer, output_pv_transformer
+                )
                 time.sleep(rate)
             except KeyboardInterrupt:
                 logger.info("Keyboard interrupt received. Exiting.")

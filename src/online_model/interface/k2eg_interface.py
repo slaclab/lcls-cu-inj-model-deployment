@@ -120,6 +120,34 @@ class K2EGInterface:
                 raise RuntimeError(f"Failed to get PV {var}: {e}")
         return input_dict
 
+    def put_output_variables(self, output_dict: dict, protos: list = None):
+        """
+        Writes the output variables to K2EG.
+
+        Parameters
+        ----------
+        output_dict: dict
+            A dictionary containing the output variable names and their values.
+        protos: list of str, optional
+            A list of protocols corresponding to each output variable (default is 'ca' for all).
+
+        Returns
+        -------
+        None
+        """
+        if protos is None:
+            protos = ["ca"] * len(output_dict)
+        elif len(protos) != len(output_dict):
+            raise ValueError(
+                "Length of protos list must match length of output_dict."
+            )
+
+        for (var, value), p in zip(output_dict.items(), proto):
+            try:
+                self.put_pv(var, value, proto=p)
+            except Exception as e:
+                raise RuntimeError(f"Failed to put PV {var}: {e}")
+
     def close(self):
         """
         Closes the K2EG client connection.
