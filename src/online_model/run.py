@@ -160,8 +160,9 @@ def write_output_and_log(
                 cleaned_output[k] = v
         except ImportError:
             cleaned_output[k] = v
+
     # Write output to PVs if applicable
-    if interface.name in ("epics", "k2eg"):
+    if interface.name in ("epics", "k2eg") and output_pv_transformer is not None:
         output_pv = output_pv_transformer.transform(cleaned_output)
         args = {"output_dict": output_pv}
         if interface.name == "k2eg":
@@ -247,6 +248,7 @@ def main():
     args = parser.parse_args()
     logger.info("Running with interface: %s", args.interface)
 
+    # Load the model from MLflow Model Registry
     model = MLflowModelGetter(registered_model_name, model_version).get_model()
 
     # Set up PV transformer
@@ -256,16 +258,24 @@ def main():
     with open(CONFIG_PATH, "r") as f:
         config_yaml = yaml.safe_load(f)
     input_pv_transformer = InputPVTransformer(config_yaml)
-    output_pv_transformer = OutputPVTransformer(config_yaml)
+    if "output_variables" in config_yaml:
+        # User defined output variable mapping
+        output_pv_transformer = OutputPVTransformer(config_yaml)
+    else:
+        output_pv_transformer = None
 
     interface = get_interface(
         args.interface,
         input_pv_transformer.input_list if args.interface == "epics" else None,
     )
 
-    with MLflowRun(
-        tags={"model_name": registered_model_name, "model_version": model_version}
-    ) as _:
+    run_tags = {
+        "interface": args.interface,
+        "model_name": registered_model_name,
+        "model_version": model_version,
+    }
+
+    with MLflowRun(tags=run_tags) as _:
         # Log lockfile for complete reproducibility
         try:
             mlflow.log_artifact(PIXI_LOCKFILE_PATH, "pixi_lockfile")
