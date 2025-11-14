@@ -148,9 +148,21 @@ def write_output_and_log(
     output_pv_transformer : OutputPVTransformer
         The transformer to map and transform model outputs to output PVs.
     """
+    # Clean output: convert torch.Tensor values to Python scalars
+    cleaned_output = {}
+    for k, v in output.items():
+        try:
+            import torch
+
+            if isinstance(v, torch.Tensor):
+                cleaned_output[k] = v.detach().cpu().numpy()
+            else:
+                cleaned_output[k] = v
+        except ImportError:
+            cleaned_output[k] = v
     # Write output to PVs if applicable
     if interface.name in ("epics", "k2eg"):
-        output_pv = output_pv_transformer.transform(output)
+        output_pv = output_pv_transformer.transform(cleaned_output)
         args = {"output_dict": output_pv}
         if interface.name == "k2eg":
             args["protos"] = output_pv_transformer.proto_list
