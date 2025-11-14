@@ -338,7 +338,9 @@ class OutputPVTransformer:
                 )
 
                 if isinstance(transformed[key], np.ndarray):
-                    if transformed[key].shape[-1] == 1:
+                    if len(transformed[key].shape) == 1:
+                        transformed[key] = float(transformed[key].squeeze())
+                    elif transformed[key].shape[-1] == 1:
                         transformed[key] = transformed[key].squeeze()
                 else:
                     transformed[key] = float(transformed[key])
