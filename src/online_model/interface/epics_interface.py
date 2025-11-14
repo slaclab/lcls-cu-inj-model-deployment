@@ -81,3 +81,28 @@ class EPICSInterface:
                 results[pv.pvname] = {"error": str(e)}
                 logger.error(f"Error retrieving PV {pv.pvname}: {e}")
         return results
+
+    def put_output_variables(self, output_dict: dict):
+        """
+        Write values to EPICS output PVs.
+
+        Parameters
+        ----------
+        output_dict : dict
+            Dictionary mapping PV names to their values to be written.
+
+        Returns
+        -------
+        None
+        """
+        # TODO: need to instantiate PV objects first (WIP)
+        for pv_name, value in output_dict.items():
+            pv = self.pv_objects[pv_name]
+            try:
+                # Wait for the connection to be established
+                if pv.wait_for_connection(timeout=5):
+                    pv.put(value)
+                else:
+                    logger.error(f"Connection failed for PV {pv.pvname}")
+            except Exception as e:
+                logger.error(f"Error writing to PV {pv.pvname}: {e}")

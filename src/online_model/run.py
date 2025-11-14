@@ -167,7 +167,7 @@ def write_output_and_log(
         args = {"output_dict": output_pv}
         if interface.name == "k2eg":
             args["protos"] = output_pv_transformer.proto_list
-        interface.put(**args)
+        interface.put_output_variables(**args)
         logger.debug(
             f"Mapped output values to write to EPICS: {MultiLineDict(output_pv)}"
         )
