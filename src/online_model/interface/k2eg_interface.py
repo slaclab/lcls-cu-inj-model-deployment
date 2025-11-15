@@ -142,7 +142,7 @@ class K2EGInterface:
                 "Length of protos list must match length of output_dict."
             )
 
-        for (var, value), p in zip(output_dict.items(), proto):
+        for (var, value), p in zip(output_dict.items(), protos):
             try:
                 self.put_pv(var, value, proto=p)
             except Exception as e:
