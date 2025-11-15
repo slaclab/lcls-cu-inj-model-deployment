@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: lcls-cu-inj-model
-        image: ghcr.io/slaclab/lcls-cu-inj-model:6e2d3ef
+        image: ghcr.io/slaclab/lcls-cu-inj-model:85014c6
         imagePullPolicy: Always
 #        command: [ "/bin/bash", "-c" ]
 #        args: [ "sleep infinity" ]
