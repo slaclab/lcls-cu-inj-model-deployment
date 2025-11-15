@@ -79,17 +79,17 @@ output_variables:
       - OTRS:IN20:571:YRMS
     proto: pva
     formula: OTRS:IN20:571:YRMS
-  ZRMS_CU_HXR_LUME:
+  OTRS:IN20:571:ZRMS_CU_HXR_LUME:
     symbols:
       - sigma_z
     proto: pva
     formula: sigma_z
-  EMITN_X_CU_HXR_LUME:
+  OTRS:IN20:571:EMITN_X_CU_HXR_LUME:
     symbols:
       - norm_emit_x
     proto: pva
     formula: norm_emit_x
-  EMITN_Y_CU_HXR_LUME:
+  OTRS:IN20:571:EMITN_Y_CU_HXR_LUME:
     symbols:
       - norm_emit_y
     proto: pva
