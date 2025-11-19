@@ -1,0 +1,9 @@
+_commit: d79159f
+_src_path: https://github.com/slaclab/lume-model-deployment-template.git
+deployment_name: lcls-cu-inj-model-deployment
+device: cpu
+interface: k2eg
+mlflow_tracking_uri: https://ard-mlflow.slac.stanford.edu/
+model_version: 1
+rate: 1.0
+registered_model_name: lcls-cu-inj-model
