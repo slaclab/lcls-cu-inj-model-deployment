@@ -21,7 +21,7 @@ RUN pixi install --environment $ENVIRONMENT
 # create the shell-hook bash script to activate the environment and run the inference script
 # if it fails, it will default to a bash shell for debugging
 RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
-    if [ "$INTERFACE" = "k2eg" ]; then cat config/config_entrypoint.sh >> /app/entrypoint.sh; fi && \
+    #if [ "$INTERFACE" = "k2eg" ]; then cat config/config_entrypoint.sh >> /app/entrypoint.sh; fi && \
     pixi shell-hook --environment $ENVIRONMENT -s bash >> /app/entrypoint.sh && \
     echo 'main() {' >> /app/entrypoint.sh && \
     echo '  python -m src.online_model.run --interface "$INTERFACE"' >> /app/entrypoint.sh && \
