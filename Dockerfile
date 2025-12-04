@@ -27,8 +27,8 @@ RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
     echo 'main || {' >> /app/entrypoint.sh && \
     echo '  status=$?' >> /app/entrypoint.sh && \
     echo '  echo "Main command failed with exit code $status."' >> /app/entrypoint.sh && \
-    echo '  exit $status' >> /app/entrypoint.sh && \
-    #echo '  exec /bin/bash' >> /app/entrypoint.sh && \
+    #echo '  exit $status' >> /app/entrypoint.sh && \
+    echo '  exec /bin/bash' >> /app/entrypoint.sh && \
     echo '}' >> /app/entrypoint.sh
 
 FROM ghcr.io/prefix-dev/pixi:noble AS production
