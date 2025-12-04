@@ -34,7 +34,7 @@ spec:
         volumeMounts:
           - name: s3cmd-config-volume
             mountPath: /app/src/config/k2eg.ini
-            subPath: k2eg-config
+            subPath: k2eg.ini
       volumes:
         - name: s3cmd-config-volume
           configMap:
