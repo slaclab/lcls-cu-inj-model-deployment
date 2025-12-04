@@ -33,8 +33,8 @@ spec:
             value: "1"
         volumeMounts:
           - name: s3cmd-config-volume
-            mountPath: /app/src/config/k2eg.ini
-            subPath: k2eg.ini
+            mountPath: /app/src/config/lcls.ini
+            subPath: lcls.ini
       volumes:
         - name: s3cmd-config-volume
           configMap:
