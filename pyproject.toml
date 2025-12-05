@@ -19,6 +19,7 @@ dependencies = [
     "mlflow==3.4.*",
     "lume-model>=2.0",
     "sympy",
+    "p4p",
     # add any extra dependencies here
 ]
 
