@@ -7,11 +7,10 @@ ARG INTERFACE="k2eg"
 WORKDIR /app
 COPY . .
 
-# install system dependencies, then clean up
+# install system dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install --no-install-recommends -qy ca-certificates git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install --no-install-recommends -qy ca-certificates git
 
 # manually trigger an update of the certificate store
 RUN update-ca-certificates

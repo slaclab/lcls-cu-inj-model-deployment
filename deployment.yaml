@@ -4,8 +4,6 @@ metadata:
   name: lcls-cu-inj-model-deployment
   namespace: lume-online-ml
 spec:
-  strategy:
-    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -17,7 +15,7 @@ spec:
     spec:
       containers:
       - name: lcls-cu-inj-model
-        image: ghcr.io/slaclab/lcls-cu-inj-model:0ac8868
+        image: ghcr.io/slaclab/lcls-cu-inj-model:c27aa77
         imagePullPolicy: Always
         restartPolicy: Always
         resources:
