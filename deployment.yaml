@@ -4,6 +4,8 @@ metadata:
   name: lcls-cu-inj-model-deployment
   namespace: lume-online-ml
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
