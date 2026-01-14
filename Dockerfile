@@ -7,10 +7,11 @@ ARG INTERFACE="k2eg"
 WORKDIR /app
 COPY . .
 
-# install system dependencies
+# install system dependencies, then clean up
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install --no-install-recommends -qy ca-certificates git
+    apt-get install --no-install-recommends -qy ca-certificates git && \
+    rm -rf /var/lib/apt/lists/*
 
 # manually trigger an update of the certificate store
 RUN update-ca-certificates
@@ -26,12 +27,36 @@ RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
     echo 'main || {' >> /app/entrypoint.sh && \
     echo '  status=$?' >> /app/entrypoint.sh && \
     echo '  echo "Main command failed with exit code $status."' >> /app/entrypoint.sh && \
-    echo '  exec /bin/bash' >> /app/entrypoint.sh && \
+    echo '  exit $status' >> /app/entrypoint.sh && \
+    #echo '  exec /bin/bash' >> /app/entrypoint.sh && \
     echo '}' >> /app/entrypoint.sh
+
+FROM ghcr.io/prefix-dev/pixi:noble AS production
+
+ARG ENVIRONMENT="cpu"
+ARG INTERFACE="k2eg"
+ENV ENVIRONMENT=${ENVIRONMENT}
+ENV INTERFACE=${INTERFACE}
 
 ENV PYTHONUNBUFFERED=1
 ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/src/config
 ENV EPICS_CA_AUTO_ADDR_LIST=NO
 
+# only copy the production environment into prod container
+# please note that the "prefix" (path) needs to stay the same as in the build container
+WORKDIR /app
+COPY --from=build /app/.pixi/envs/$ENVIRONMENT /app/.pixi/envs/$ENVIRONMENT
+COPY --from=build /app/pyproject.toml /app/pyproject.toml
+COPY --from=build /app/pixi.lock /app/pixi.lock
+# The ignore files are needed for 'pixi run' to work in the container
+COPY --from=build /app/.pixi/.gitignore /app/.pixi/.gitignore
+COPY --from=build /app/.pixi/.condapackageignore /app/.pixi/.condapackageignore
+COPY --from=build --chmod=0755 /app/entrypoint.sh /app/entrypoint.sh
+
+COPY . /app
+
+WORKDIR /app
+
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
+# no more pixi needed in the prod container
 ENTRYPOINT ["/app/entrypoint.sh"]
