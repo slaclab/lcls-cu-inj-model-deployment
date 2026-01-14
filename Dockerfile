@@ -26,7 +26,6 @@ RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
     echo 'main || {' >> /app/entrypoint.sh && \
     echo '  status=$?' >> /app/entrypoint.sh && \
     echo '  echo "Main command failed with exit code $status."' >> /app/entrypoint.sh && \
-    #echo '  exit $status' >> /app/entrypoint.sh && \
     echo '  exec /bin/bash' >> /app/entrypoint.sh && \
     echo '}' >> /app/entrypoint.sh
 
@@ -34,6 +33,5 @@ ENV PYTHONUNBUFFERED=1
 ENV K2EG_PYTHON_CONFIGURATION_PATH_FOLDER=/app/src/config
 ENV EPICS_CA_AUTO_ADDR_LIST=NO
 
-WORKDIR /app
-
-ENTRYPOINT ["/bin/bash"]
+# set the entrypoint to the shell-hook script (activate the environment and run the command)
+ENTRYPOINT ["/app/entrypoint.sh"]
