@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: lcls-cu-inj-model
-        image: ghcr.io/slaclab/lcls-cu-inj-model:06292fc
+        image: ghcr.io/slaclab/lcls-cu-inj-model:1c24a72
         imagePullPolicy: Always
         restartPolicy: Always
         resources:
