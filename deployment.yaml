@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: lcls-cu-inj-model
+      annotations:
+        configmap/version: "v2"
     spec:
       containers:
       - name: lcls-cu-inj-model
@@ -41,4 +43,4 @@ spec:
       volumes:
         - name: s3cmd-config-volume
           configMap:
-            name: k2eg-config-map
+            name: k2eg-config-map-cu-inj
