@@ -13,7 +13,7 @@ class K2EGInterface:
     """
 
     def __init__(
-        self, environment_id: str = "lcls", app_name: str = "app-ad-online-ml"
+        self, environment_id: str = "lcls", app_name: str = "lcls-cu-inj-surrogate-model"
     ):
         """
         Initializes the K2EGInterface with a K2EG client.
