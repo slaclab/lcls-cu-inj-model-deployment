@@ -1,7 +1,7 @@
 FROM ghcr.io/prefix-dev/pixi:noble AS build
 
 ARG ENVIRONMENT="cpu"
-ARG INTERFACE="k2eg"
+ARG INTERFACE="epics"
 
 # copy source code, pixi.toml and pixi.lock to the container
 WORKDIR /app
@@ -34,7 +34,7 @@ RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
 FROM ghcr.io/prefix-dev/pixi:noble AS production
 
 ARG ENVIRONMENT="cpu"
-ARG INTERFACE="k2eg"
+ARG INTERFACE="epics"
 ENV ENVIRONMENT=${ENVIRONMENT}
 ENV INTERFACE=${INTERFACE}
 
