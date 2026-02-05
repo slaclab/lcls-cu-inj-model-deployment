@@ -36,6 +36,8 @@ spec:
             value: /app/src/config
           - name: MODEL_VERSION
             value: "1"
+          - name: INFERENCE_SERVICE_URL
+            value: "http://inference-service-cu-inj:8000"
         volumeMounts:
           - name: s3cmd-config-volume
             mountPath: /app/src/config/lcls.ini
