@@ -40,7 +40,7 @@ spec:
       - name: gh-regcred
       containers:
       - name: lcls-cu-inj-model
-        image: ghcr.io/slaclab/lcls-cu-inj-model:403503c
+        image: ghcr.io/slaclab/lcls-cu-inj-model:72b6c3d
         imagePullPolicy: Always
         restartPolicy: Always
         resources:
