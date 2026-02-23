@@ -228,10 +228,10 @@ def write_output_and_log(
     # Add model outputs
     metrics_to_log.update(output)
 
-    mlflow.log_metrics(
-        metrics_to_log,
-        timestamp=wall_clock_timestamp_ms,
-    )
+    #mlflow.log_metrics(
+    #    metrics_to_log,
+    #    timestamp=wall_clock_timestamp_ms,
+    #)
 
    
     logger.info("Wrote input and output metrics to MLflow.")
